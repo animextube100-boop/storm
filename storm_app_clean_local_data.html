@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>STORM Mining</title>
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM: SOLID CHARCOAL & MATTE GOLD (NO TRANSPARENT GLASS)
+       ========================================================================== */
+    :root {
+      --bg-base: #0B0C0E;
+      --bg-card: #15171C;
+      --bg-surface: #1E222A;
+      --border-color: #262A34;
+      --border-accent: #373C48;
+      
+      --gold-primary: #FFD000;
+      --gold-hover: #E6BC00;
+      --gold-dark: #A37F00;
+      
+      --text-main: #FFFFFF;
+      --text-muted: #8E95A5;
+      --text-dim: #5D6370;
+      
+      --color-success: #10B981;
+      --color-danger: #EF4444;
+      --color-warning: #F59E0B;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      overflow-x: hidden;
+      padding-bottom: 86px;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    /* Container */
+    .app-viewport {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 12px 12px 80px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Page Views */
+    .page-view {
+      display: none;
+    }
+    .page-view.active {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Solid Cards */
+    .solid-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Top User Bar */
+    .top-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      object-fit: cover;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+    }
+    .user-name {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+    .badge-verified {
+      background: #11281A;
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+    .badge-unverified {
+      background: #2D1414;
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+    }
+
+    /* 3D Solid Buttons */
+    .btn-3d {
+      background: var(--gold-primary);
+      color: #000000;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      border: none;
+      border-bottom: 4px solid var(--gold-dark);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.08s ease;
+      width: 100%;
+    }
+    .btn-3d:active {
+      transform: translateY(3px);
+      border-bottom-width: 1px;
+    }
+    .btn-3d:disabled {
+      background: #22252C;
+      color: #555A66;
+      border-bottom: 4px solid #16181D;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-3d-secondary {
+      background: var(--bg-surface);
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-accent);
+      border-bottom: 3px solid #14171C;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-transform: uppercase;
+    }
+    .btn-3d-secondary:active {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+    .btn-3d-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: #EF4444;
+      color: #FFFFFF;
+      border-bottom-color: #991B1B;
+    }
+
+    /* Solid Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .stat-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+    .stat-value.gold {
+      color: var(--gold-primary);
+    }
+
+    /* MINING HEADER IN HOME PAGE */
+    .mining-hero-card {
+      text-align: center;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--gold-dark);
+      background: #111317;
+    }
+    .mining-logo-frame {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #000000;
+      border: 3px solid var(--gold-primary);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mining-logo-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: contain;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--gold-primary);
+      transition: width 0.3s ease;
+    }
+
+    /* Verification Notice */
+    .verification-warning {
+      background: #1C1710;
+      border: 1px solid var(--gold-dark);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Miner Shop Cards with Photos */
+    .miner-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .miner-photo-box {
+      width: 58px;
+      height: 58px;
+      border-radius: var(--radius-md);
+      background: #000;
+      border: 1px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .miner-photo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Task Items */
+    .task-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Lucky Spin Wheel */
+    .spin-box {
+      text-align: center;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .wheel-wrapper {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      margin: 14px auto;
+    }
+    #wheelCanvas {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      border: 4px solid var(--gold-primary);
+      background: #000;
+      transition: transform 4s cubic-bezier(0.12, 0.98, 0.24, 1.01);
+    }
+    .wheel-pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 22px solid var(--gold-primary);
+      z-index: 10;
+    }
+
+    /* Streak Grid */
+    .streak-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .streak-day-cell {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 2px;
+      text-align: center;
+      font-size: 11px;
+    }
+    .streak-day-cell.claimed {
+      background: #17211A;
+      border-color: var(--color-success);
+      color: var(--color-success);
+      font-weight: 700;
+    }
+    .streak-day-cell.today {
+      border-color: var(--gold-primary);
+    }
+
+    /* Transaction Rows */
+    .tx-row {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .tx-status {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+    .status-PENDING { background: #2B2111; color: var(--color-warning); border: 1px solid var(--color-warning); }
+    .status-APPROVED { background: #11281A; color: var(--color-success); border: 1px solid var(--color-success); }
+    .status-REJECTED { background: #2D1414; color: var(--color-danger); border: 1px solid var(--color-danger); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-window {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .input-field {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      color: #FFFFFF;
+      font-size: 13px;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: var(--gold-primary);
+    }
+    .address-display-box {
+      background: #000000;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      word-break: break-all;
+      color: var(--gold-primary);
+    }
+
+    /* Fixed Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: #0B0C0E;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 460px;
+      margin: 0 auto;
+      z-index: 1000;
+    }
+    .nav-item {
+      flex: 1;
+      height: 100%;
+      background: transparent;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+    .nav-item.active {
+      color: var(--gold-primary);
+    }
+
+    /* Toast */
+    .toast-msg {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #17191E;
+      border: 1px solid var(--gold-primary);
+      color: #FFFFFF;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 3000;
+      transition: transform 0.25s ease;
+      white-space: nowrap;
+    }
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-msg">Notification</div>
+
+  <div class="app-viewport">
+
+    <!-- USER TOP HEADER -->
+    <header class="top-header">
+      <div class="user-profile">
+        <img id="userAvatarImg" class="user-avatar" src="https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg" alt="Avatar" onerror="this.src='https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg'" />
+        <div>
+          <div class="user-name">
+            <span id="userNameTxt">Miner</span>
+            <span id="userVerificationBadge" class="status-badge badge-unverified">UNVERIFIED</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim);" id="userIdTxt">ID: --</div>
+        </div>
+      </div>
+      <button class="btn-3d-secondary" style="font-size: 11px; padding: 6px 10px;" onclick="switchTab('page-profile')">
+        Profile
+      </button>
+    </header>
+
+    <!-- =========================================================
+         PAGE 1: COMBINED HOME & MINING SECTION
+    ========================================================= -->
+    <main id="page-home" class="page-view active">
+      
+      <!-- 1. MINING RIG AT VERY TOP (PROMINENT OFFICIAL LOGO) -->
+      <section class="solid-card mining-hero-card">
+        <div class="mining-logo-frame">
+          <img src="https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg" alt="STORM Logo" class="mining-logo-img" />
+        </div>
+
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Accumulated Session Yield</div>
+          <div style="font-size: 30px; font-weight: 900; color: var(--gold-primary); margin-top: 2px;">
+            <span id="miningAccumulatedVal">0.000</span> <span style="font-size: 16px;">STORM</span>
+          </div>
+        </div>
+
+        <div style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+            <span id="miningRigStatusLabel">STATUS: INACTIVE</span>
+            <span id="miningCountdownTimer" style="color: var(--gold-primary);">08:00:00</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="miningProgressFillBar"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 4px;" id="miningCycleLabel">
+            Session: 8 Hours (Next Auto-Cycle: 6H)
+          </div>
+        </div>
+
+        <div class="grid-2" style="width: 100%;">
+          <div class="stat-box">
+            <div class="stat-label">Mining Speed</div>
+            <div class="stat-value gold" id="miningPowerText">10.0 STORM/h</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Hardware Rig</div>
+            <div class="stat-value" id="miningTierText">Tier 1 Free</div>
+          </div>
+        </div>
+
+        <div style="width: 100%;">
+          <button id="btnStartMiningRig" class="btn-3d" onclick="handleStartMiningClick()">
+            Start 8H Mining
+          </button>
+          <button id="btnClaimMiningYield" class="btn-3d" style="display: none; background: #10B981; border-color: #059669;" onclick="handleClaimMiningClick()">
+            Claim STORM Yield
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. TOTAL STORM BALANCE & USD ONLY (NO INR) -->
+      <section class="solid-card" style="text-align: center; padding: 18px 14px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total STORM Balance</div>
+        <div style="font-size: 34px; font-weight: 900; color: var(--gold-primary); margin: 4px 0;">
+          <span id="homeTotalBalance">0.000</span> <span style="font-size: 16px;">STORM</span>
+        </div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-muted);">
+          ≈ <span id="homeFiatUSD" style="color: #FFFFFF;">$0.00</span> USD
+        </div>
+      </section>
+
+      <!-- 3. AVAILABLE & PENDING CLAIM STATS -->
+      <div class="grid-2">
+        <div class="stat-box">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value gold" id="homeAvailBalance">0.000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pending Claim</div>
+          <div class="stat-value" id="homePendingBalance">0.000</div>
+        </div>
+      </div>
+
+      <!-- 4. ACCOUNT VERIFICATION WARNING (IF UNVERIFIED) -->
+      <div id="unverifiedNoticeBox" class="verification-warning" style="display: none;">
+        <div style="font-size: 12px; font-weight: 800; color: var(--gold-primary); text-transform: uppercase;">⚠️ Account Unverified</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Free mining requires a one-time anti-bot verification of <strong>0.5 TON</strong>. Once approved by admin, mining unlocks.
+        </div>
+        <button class="btn-3d" style="padding: 10px; font-size: 12px;" onclick="openVerificationModal()">
+          Complete 0.5 TON Verification
+        </button>
+      </div>
+
+      <!-- 5. LIVE TOKEN PRICE (DEXSCREENER) -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Live STORM Market Price</span>
+          <button class="btn-3d-secondary" style="padding: 3px 8px; font-size: 10px;" onclick="fetchDexScreenerPrice(true)">Refresh</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div>
+            <span style="font-size: 20px; font-weight: 900;" id="liveTokenPriceDisplay">Loading...</span>
+            <span id="livePriceChangeDisplay" style="font-size: 12px; font-weight: 800; margin-left: 6px;">--</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim);" id="priceTimestampDisplay">DexScreener</div>
+        </div>
+      </section>
+
+      <!-- 6. 7-DAY LOGIN STREAK REWARDS -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>7-Day Login Streak</span>
+          <button class="btn-3d-secondary" id="btnCheckInDaily" style="padding: 4px 10px; font-size: 11px;" onclick="claimDailyStreakReward()">Check In</button>
+        </div>
+        <div class="streak-grid" id="streakCellsContainer"></div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 2: MINERS STORE (UPDATED SPEED & PHOTOS)
+    ========================================================= -->
+    <main id="page-miners" class="page-view">
+      
+      <div class="solid-card">
+        <div class="card-title">Hardware Rig Upgrades</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Upgraded cloud hardware. When your purchase is verified, the mining speed is added permanently to your account!
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;" id="minerCardsContainer">
+        <!-- Rendered via MINER_LIST -->
+      </div>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 3: TASKS & LUCKY SPIN WHEEL (24H REPEATABLE)
+    ========================================================= -->
+    <main id="page-tasks" class="page-view">
+      
+      <div class="solid-card">
+        <div class="card-title">Daily Quests & Tasks</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Complete these promotional community tasks once every 24 hours to earn continuous STORM token rewards!
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;" id="tasksCardsContainer">
+        <!-- Rendered via TASKS_LIST with 24h reset timer -->
+      </div>
+
+      <!-- LUCKY SPIN SECTION (20 - 100 STORM) -->
+      <section class="solid-card spin-box">
+        <div class="card-title" style="width: 100%;">⚡ Daily Lucky Spin</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Spin once every 24 hours. Guaranteed reward between 20 and 100 STORM.
+        </div>
+
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer"></div>
+          <canvas id="wheelCanvas" width="500" height="500"></canvas>
+        </div>
+
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+          Next Spin: <strong id="spinTimerTxt" style="color: var(--gold-primary);">Ready</strong>
+        </div>
+
+        <button id="btnTriggerSpin" class="btn-3d" style="max-width: 260px;" onclick="handleSpinWheelClick()">
+          SPIN WHEEL
+        </button>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 4: FULL TEAM SECTION (REFERRALS & REWARDS)
+    ========================================================= -->
+    <main id="page-team" class="page-view">
+      
+      <!-- REFERRAL SUMMARY -->
+      <section class="solid-card">
+        <div class="card-title">My Mining Team</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Earn <strong>10% commission</strong> on all earnings generated by your verified referrals.
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 10px;">
+          <div class="stat-box">
+            <div class="stat-label">Total Referrals</div>
+            <div class="stat-value" id="teamTotalCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Verified (0.5 TON)</div>
+            <div class="stat-value gold" id="teamVerifiedCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Team Commission</div>
+            <div class="stat-value gold" id="teamTotalEarnings">0.00</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Your Personal Invite Link:</div>
+          <div class="address-display-box" id="refLinkDisplay">https://t.me/storm_bot?start=ref_000</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button class="btn-3d-secondary" style="flex: 1;" onclick="copyReferralLink()">Copy Link</button>
+          <button class="btn-3d" style="flex: 1; padding: 10px;" onclick="shareReferralLink()">Share</button>
+        </div>
+      </section>
+
+      <!-- REFERRAL MEMBERS LIST -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Team Members</span>
+          <span style="font-size: 11px; font-weight: 700; color: var(--gold-primary);">10% Yield Share</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;" id="teamMembersListContainer">
+          <!-- Rendered via AppState.teamMembers -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 5: PROFILE & WALLET & WITHDRAWALS (MIN 5000 + 300 FEE)
+    ========================================================= -->
+    <main id="page-profile" class="page-view">
+      
+      <!-- WALLET ADDRESS (DYNAMIC SAVE & DISCONNECT STATE) -->
+      <section class="solid-card">
+        <div class="card-title">Destination TON Wallet</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+          Withdrawals are dispatched to your saved non-custodial TON wallet.
+        </div>
+
+        <!-- STATE 1: NO WALLET SAVED (INPUT & SAVE BUTTON VISIBLE) -->
+        <div id="walletInputContainer">
+          <input type="text" id="manualWalletInput" class="input-field" placeholder="Enter TON Address (UQ... / EQ...)" />
+          <button class="btn-3d" style="margin-top: 8px;" onclick="saveManualWallet()">
+            Save Wallet Address
+          </button>
+        </div>
+
+        <!-- STATE 2: WALLET SAVED (ADDRESS DISPLAYED & DISCONNECT BUTTON ONLY) -->
+        <div id="walletSavedContainer" style="display: none;">
+          <div class="stat-box" style="margin-bottom: 8px;">
+            <div class="stat-label">Connected Wallet Address</div>
+            <div id="savedWalletAddressText" class="address-display-box" style="margin-top: 6px;">--</div>
+          </div>
+          <button class="btn-3d btn-danger" onclick="disconnectWallet()">
+            Disconnect Wallet
+          </button>
+        </div>
+      </section>
+
+      <!-- WITHDRAWAL SECTION (MIN 5000 STORM & 300 FEE & 2 VERIFIED REFS) -->
+      <section class="solid-card">
+        <div class="card-title">Withdraw STORM</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+          <strong>Rules:</strong> Minimum 5000 STORM, 300 STORM Fixed Network Fee, and at least 2 Approved Verified Referrals.
+        </div>
+        <div class="grid-2" style="margin-bottom: 10px;">
+          <div class="stat-box">
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value gold" id="withdrawAvailBal">0.000</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="withdrawEligibilityText" style="font-size: 11px;">Checking...</div>
+          </div>
+        </div>
+        <button class="btn-3d" onclick="openWithdrawModal()">
+          Request Withdrawal
+        </button>
+      </section>
+
+      <!-- TRANSACTION HISTORY -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Transaction & Order History</span>
+          <span style="font-size: 10px; color: var(--text-dim);">Tap item to verify</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;" id="txHistoryContainer">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- =========================================================
+       BOTTOM NAVIGATION BAR
+  ========================================================= -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('page-home', this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-miners', this)">
+      <svg viewBox="0 0 24 24"><path d="M22 6h-6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-12-2h4v2h-4V4zm12 14H2V8h20v10z"/></svg>
+      <span>Miners</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-tasks', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-4.5-4.5 1.4-1.4 3.1 3.1 7.1-7.1 1.4 1.4L10 17z"/></svg>
+      <span>Tasks</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-team', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Team</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- =========================================================
+       MODAL 1: 0.5 TON VERIFICATION
+  ========================================================= -->
+  <div id="verificationModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title">0.5 TON Account Verification</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Send exactly <strong>0.5 TON</strong> to our official receiving address. Submit the transaction hash for administrator review.
+      </div>
+
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Official Destination Address:</div>
+        <div class="address-display-box" id="verifyReceivingAddress">UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x</div>
+        <button class="btn-3d-secondary" style="width: 100%; margin-top: 6px; padding: 6px;" onclick="copyCentralAddress()">
+          Copy Address
+        </button>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash (from Tonkeeper / Explorer):</label>
+        <input type="text" id="verifyTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitVerificationPayment()">
+          Submit Review
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('verificationModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 2: BUY MINER (SAME CENTRAL TON ADDRESS)
+  ========================================================= -->
+  <div id="minerBuyModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title" id="buyMinerTitle">Purchase Miner</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Send the specified TON amount to the official receiving address and submit your transaction hash.
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Amount Due</div>
+        <div class="stat-value gold" id="buyMinerPriceTon">0.0 TON</div>
+      </div>
+
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Official Receiving TON Address:</div>
+        <div class="address-display-box" id="minerReceivingAddress">UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x</div>
+        <button class="btn-3d-secondary" style="width: 100%; margin-top: 6px; padding: 6px;" onclick="copyCentralAddress()">
+          Copy Address
+        </button>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash:</label>
+        <input type="text" id="minerTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitMinerPurchase()">
+          Submit Purchase
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('minerBuyModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 3: WITHDRAWAL REQUEST (MIN 5000 + 300 FEE)
+  ========================================================= -->
+  <div id="withdrawModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title">Withdrawal Request</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Tokens will be manually dispatched to your TON wallet after review.
+      </div>
+
+      <div class="grid-2">
+        <div class="stat-box">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value gold" id="modalWithdrawAvailable">0.000 STORM</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">System Fee</div>
+          <div class="stat-value" style="color: var(--color-warning);">300 STORM</div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Amount (Minimum 5000 STORM):</label>
+        <input type="number" id="inputWithdrawAmount" class="input-field" placeholder="5000" min="5000" style="margin-top: 4px;" oninput="updateWithdrawalBreakdown()" />
+      </div>
+
+      <div class="stat-box" style="background: #11141A;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-muted);">Net Payout to Wallet:</span>
+          <strong id="modalNetPayoutText" style="color: var(--gold-primary);">0.00 STORM</strong>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Destination TON Address:</label>
+        <input type="text" id="inputWithdrawDestination" class="input-field" placeholder="UQ... or EQ..." style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitWithdrawalForm()">
+          Confirm Withdraw
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('withdrawModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT ARCHITECTURE & FUNCTIONALITY
+       ========================================================================== -->
+  <script>
+    /* -------------------------------------------------------------
+       1. GLOBAL CONFIGURATION & SYSTEM CONSTANTS
+    ------------------------------------------------------------- */
+    const STORM_CONFIG = {
+      TOKEN_SYMBOL: "STORM",
+      BLOCKCHAIN: "TON",
+      // Single official receiving TON address for ALL payments:
+      RECEIVING_ADDRESS: "UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x",
+      CONTRACT_ADDRESS: "EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
+      DEXSCREENER_API: "https://api.dexscreener.com/latest/dex/tokens/EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
+      MIN_WITHDRAWAL_STORM: 5000,
+      WITHDRAWAL_FEE_STORM: 300,
+      MIN_VERIFIED_REFERRALS: 2,
+      VERIFICATION_COST_TON: 0.5,
+      INITIAL_MINING_DURATION_SEC: 8 * 3600, // 8 hours
+      RESTART_MINING_DURATION_SEC: 6 * 3600  // 6 hours
+    };
+
+    /* -------------------------------------------------------------
+       2. MINERS CATALOG (UPDATED SPEEDS: 15, 20, 25, 35, 50 STORM/HR)
+    ------------------------------------------------------------- */
+    const MINER_LIST = [
+      {
+        id: "basic",
+        name: "Basic Miner",
+        priceTon: 1.0,
+        speed: 15.0,
+        imgUrl: "https://i.ibb.co/JFbgZn02/Untitled-design-4.png"
+      },
+      {
+        id: "advanced",
+        name: "Advanced Miner",
+        priceTon: 2.5,
+        speed: 20.0,
+        imgUrl: "https://i.ibb.co/TBHV5Xfp/Untitled-design-5.png"
+      },
+      {
+        id: "pro",
+        name: "Pro Miner",
+        priceTon: 5.0,
+        speed: 25.0,
+        imgUrl: "https://i.ibb.co/gLLPYWR3/Untitled-design-6.png"
+      },
+      {
+        id: "ultra",
+        name: "Ultra Miner",
+        priceTon: 10.0,
+        speed: 35.0,
+        imgUrl: "https://i.ibb.co/GNz8TK4/Untitled-design-7.png"
+      },
+      {
+        id: "legendary",
+        name: "Legendary Miner",
+        priceTon: 25.0,
+        speed: 50.0,
+        imgUrl: "https://i.ibb.co/mC92QPtb/Untitled-design-8.png"
+      }
+    ];
+
+    /* -------------------------------------------------------------
+       3. REAL TASKS WITH UPDATED REWARDS (24H REPEATABLE)
+    ------------------------------------------------------------- */
+    const TASKS_LIST = [
+      {
+        id: "task_storm_channel",
+        title: "Join STORM Official Channel",
+        reward: 20,
+        link: "https://t.me/STORM_NEWS_APP"
+      },
+      {
+        id: "task_sponsor_channel",
+        title: "Join Sponsor Channel",
+        reward: 15,
+        link: "https://t.me/CryptoClarity_News"
+      },
+      {
+        id: "task_react_sponsor",
+        title: "REACT on Latest Post (Sponsor)",
+        reward: 20,
+        link: "https://t.me/CryptoClarity_News"
+      },
+      {
+        id: "task_react_storm",
+        title: "REACT on Latest Post (STORM)",
+        reward: 15,
+        link: "https://t.me/STORM_NEWS_APP"
+      }
+    ];
+
+    // Daily Spin Wheel (Guaranteed between 20 and 100 STORM)
+    const SPIN_SEGMENTS = [
+      { label: "20 STORM", value: 20, bg: "#15171C", text: "#FFD000" },
+      { label: "30 STORM", value: 30, bg: "#FFD000", text: "#000000" },
+      { label: "40 STORM", value: 40, bg: "#15171C", text: "#FFD000" },
+      { label: "50 STORM", value: 50, bg: "#FFD000", text: "#000000" },
+      { label: "60 STORM", value: 60, bg: "#15171C", text: "#FFD000" },
+      { label: "75 STORM", value: 75, bg: "#FFD000", text: "#000000" },
+      { label: "85 STORM", value: 85, bg: "#15171C", text: "#FFD000" },
+      { label: "100 STORM", value: 100, bg: "#E6BC00", text: "#000000" }
+    ];
+
+    const STREAK_VALUES = [10, 15, 25, 35, 50, 75, 100];
+
+    /* -------------------------------------------------------------
+       4. STATE ARCHITECTURE
+    ------------------------------------------------------------- */
+    const DEFAULT_APP_STATE = {
+      user: {
+        id: "",
+        name: "Miner",
+        verified: false, // Verification is granted only after trusted review.
+        savedTonWallet: ""
+      },
+      balances: {
+        total: 0.000,
+        available: 0.000,
+        pendingMining: 0.000
+      },
+      mining: {
+        isActive: false,
+        startedAt: 0,
+        durationSeconds: 8 * 3600, // 8 Hours initial
+        baseSpeed: 10.0,
+        extraSpeed: 0.0,
+        sessionCount: 0,
+        lastClaimTime: 0
+      },
+      streak: {
+        currentDay: 1,
+        lastClaimDate: ""
+      },
+      spinWheel: {
+        lastSpinTimestamp: 0
+      },
+      teamMembers: [],
+      completedTasks: {}, // Stores task completion timestamps: { [taskId]: timestamp }
+      transactions: []
+    };
+
+    let AppState = JSON.parse(JSON.stringify(DEFAULT_APP_STATE));
+    let liveTokenPriceUSD = null;
+    let selectedMinerToBuy = null;
+    let isSpinningWheel = false;
+    let wheelRotationAngle = 0;
+
+    /* -------------------------------------------------------------
+       5. STORAGE SYNCHRONIZATION
+    ------------------------------------------------------------- */
+    // Remove only the known seeded demo records from older saved states.
+    // Real user progress and saved wallet details are retained.
+    function cleanLegacyDemoData(state) {
+      const cleaned = {
+        ...JSON.parse(JSON.stringify(DEFAULT_APP_STATE)),
+        ...(state || {}),
+        user: { ...DEFAULT_APP_STATE.user, ...(state?.user || {}) },
+        balances: { ...DEFAULT_APP_STATE.balances, ...(state?.balances || {}) },
+        mining: { ...DEFAULT_APP_STATE.mining, ...(state?.mining || {}) },
+        streak: { ...DEFAULT_APP_STATE.streak, ...(state?.streak || {}) },
+        spinWheel: { ...DEFAULT_APP_STATE.spinWheel, ...(state?.spinWheel || {}) }
+      };
+
+      if (cleaned.user.id === "789123049") cleaned.user.id = "";
+      if (cleaned.user.name === "StormMiner") cleaned.user.name = "Miner";
+
+      // The original file preloaded 100 STORM into both balances. Remove that
+      // seeded amount once when migrating the old v4 state.
+      if (state && state._stormDemoSeedRemoved !== true) {
+        cleaned.balances.total = Math.max(0, (Number(cleaned.balances.total) || 0) - 100);
+        cleaned.balances.available = Math.max(0, (Number(cleaned.balances.available) || 0) - 100);
+        cleaned._stormDemoSeedRemoved = true;
+      }
+
+      const demoReferralNames = new Set(["@ton_miner_pro", "@crypto_sam", "@whale_ton"]);
+      cleaned.teamMembers = (Array.isArray(cleaned.teamMembers) ? cleaned.teamMembers : [])
+        .filter(member => !demoReferralNames.has(member?.username));
+      cleaned.transactions = (Array.isArray(cleaned.transactions) ? cleaned.transactions : [])
+        .filter(tx => tx?.id !== "TX-VERIFY-INIT");
+      cleaned.completedTasks = cleaned.completedTasks && typeof cleaned.completedTasks === "object"
+        ? cleaned.completedTasks : {};
+
+      return cleaned;
+    }
+
+    async function loadSavedState() {
+      let raw = null;
+      try {
+        if (window.Telegram?.WebApp?.CloudStorage) {
+          raw = await new Promise((resolve) => {
+            window.Telegram.WebApp.CloudStorage.getItem("storm_state_v4", (err, val) => {
+              resolve(!err && val ? val : null);
+            });
+          });
+        }
+      } catch (err) {}
+
+      if (!raw) {
+        try { raw = localStorage.getItem("storm_state_v4"); } catch (err) {}
+      }
+
+      if (raw) {
+        try {
+          AppState = cleanLegacyDemoData(JSON.parse(raw));
+        } catch (err) {
+          AppState = JSON.parse(JSON.stringify(DEFAULT_APP_STATE));
+        }
+      } else {
+        AppState = JSON.parse(JSON.stringify(DEFAULT_APP_STATE));
+      }
+
+      recalculateHardwareSpeed();
+      // Persist the cleaned state so the removed demo data does not return.
+      persistState();
+    }
+
+    function persistState() {
+      const serial = JSON.stringify(AppState);
+      try {
+        localStorage.setItem("storm_state_v4", serial);
+        if (window.Telegram?.WebApp?.CloudStorage) {
+          window.Telegram.WebApp.CloudStorage.setItem("storm_state_v4", serial, () => {});
+        }
+      } catch (err) {}
+    }
+
+    // Ensures approved miner purchases are added to extraSpeed
+    function recalculateHardwareSpeed() {
+      let extra = 0;
+      if (Array.isArray(AppState.transactions)) {
+        AppState.transactions.forEach(t => {
+          if (t.status === "APPROVED" && t.minerSpeed) {
+            extra += parseFloat(t.minerSpeed);
+          }
+        });
+      }
+      AppState.mining.extraSpeed = extra;
+    }
+
+    /* -------------------------------------------------------------
+       6. TELEGRAM INTEGRATION & STARTUP
+    ------------------------------------------------------------- */
+    function initTelegramSDK() {
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.ready();
+        tg.expand();
+        try {
+          tg.headerColor = "#0B0C0E";
+          tg.backgroundColor = "#0B0C0E";
+        } catch(e) {}
+
+        if (tg.initDataUnsafe?.user) {
+          const u = tg.initDataUnsafe.user;
+          AppState.user.id = String(u.id);
+          AppState.user.name = u.first_name || "Miner";
+        }
+      }
+
+      document.getElementById("userNameTxt").textContent = AppState.user.name;
+      document.getElementById("userIdTxt").textContent = `ID: ${AppState.user.id}`;
+      document.getElementById("refLinkDisplay").textContent = `https://t.me/storm_bot?start=ref_${AppState.user.id}`;
+
+      document.getElementById("verifyReceivingAddress").textContent = STORM_CONFIG.RECEIVING_ADDRESS;
+      document.getElementById("minerReceivingAddress").textContent = STORM_CONFIG.RECEIVING_ADDRESS;
+
+      updateVerificationBadges();
+      updateSavedWalletUI();
+    }
+
+    function updateVerificationBadges() {
+      const badge = document.getElementById("userVerificationBadge");
+      const unverifiedBox = document.getElementById("unverifiedNoticeBox");
+
+      if (AppState.user.verified) {
+        badge.className = "status-badge badge-verified";
+        badge.textContent = "VERIFIED";
+        unverifiedBox.style.display = "none";
+      } else {
+        badge.className = "status-badge badge-unverified";
+        badge.textContent = "UNVERIFIED";
+        unverifiedBox.style.display = "flex";
+      }
+    }
+
+    /* -------------------------------------------------------------
+       7. WALLET ADDRESS (DYNAMIC SAVE & DISCONNECT STATE)
+    ------------------------------------------------------------- */
+    function updateSavedWalletUI() {
+      const inputWrap = document.getElementById("walletInputContainer");
+      const savedWrap = document.getElementById("walletSavedContainer");
+      const addrTxt = document.getElementById("savedWalletAddressText");
+
+      if (AppState.user.savedTonWallet && AppState.user.savedTonWallet.trim() !== "") {
+        inputWrap.style.display = "none";
+        savedWrap.style.display = "block";
+        addrTxt.textContent = AppState.user.savedTonWallet;
+      } else {
+        inputWrap.style.display = "block";
+        savedWrap.style.display = "none";
+        document.getElementById("manualWalletInput").value = "";
+      }
+    }
+
+    function saveManualWallet() {
+      const val = document.getElementById("manualWalletInput").value.trim();
+      if (!val || val.length < 24) {
+        showToast("Enter a valid TON address (UQ... / EQ...)");
+        return;
+      }
+      AppState.user.savedTonWallet = val;
+      persistState();
+      updateSavedWalletUI();
+      showToast("TON Wallet saved!");
+    }
+
+    function disconnectWallet() {
+      AppState.user.savedTonWallet = "";
+      persistState();
+      updateSavedWalletUI();
+      showToast("Wallet disconnected");
+    }
+
+    /* -------------------------------------------------------------
+       8. DEXSCREENER LIVE PRICE (USD ONLY - NO INR)
+    ------------------------------------------------------------- */
+    async function fetchDexScreenerPrice(manual = false) {
+      const priceTxt = document.getElementById("liveTokenPriceDisplay");
+      const changeTxt = document.getElementById("livePriceChangeDisplay");
+      const timeTxt = document.getElementById("priceTimestampDisplay");
+
+      if (manual) priceTxt.textContent = "Checking...";
+
+      try {
+        const res = await fetch(STORM_CONFIG.DEXSCREENER_API, { cache: "no-store" });
+        if (!res.ok) throw new Error("DexScreener Offline");
+        const json = await res.json();
+
+        if (json.pairs && json.pairs.length > 0) {
+          const tonPair = json.pairs.find(p => p.chainId === "ton") || json.pairs[0];
+          if (tonPair && tonPair.priceUsd) {
+            liveTokenPriceUSD = parseFloat(tonPair.priceUsd);
+            const change24h = parseFloat(tonPair.priceChange?.h24 || 0);
+
+            priceTxt.textContent = `$${liveTokenPriceUSD.toFixed(6)}`;
+            changeTxt.textContent = `${change24h >= 0 ? "+" : ""}${change24h.toFixed(2)}%`;
+            changeTxt.style.color = change24h >= 0 ? "var(--color-success)" : "var(--color-danger)";
+            timeTxt.textContent = new Date().toLocaleTimeString();
+            recalculateUSD();
+            return;
+          }
+        }
+        setPriceUnavailable("No liquid pool");
+      } catch (err) {
+        setPriceUnavailable("Price unavailable");
+      }
+    }
+
+    function setPriceUnavailable(msg) {
+      liveTokenPriceUSD = null;
+      document.getElementById("liveTokenPriceDisplay").textContent = msg;
+      document.getElementById("livePriceChangeDisplay").textContent = "--";
+      document.getElementById("livePriceChangeDisplay").style.color = "var(--text-dim)";
+      recalculateUSD();
+    }
+
+    function recalculateUSD() {
+      const total = AppState.balances.total;
+      const usdEl = document.getElementById("homeFiatUSD");
+
+      if (liveTokenPriceUSD !== null && !isNaN(liveTokenPriceUSD)) {
+        const totalUsd = total * liveTokenPriceUSD;
+        usdEl.textContent = `$${totalUsd.toFixed(2)}`;
+      } else {
+        usdEl.textContent = "$--";
+      }
+    }
+
+    /* -------------------------------------------------------------
+       9. MINING RIG LOGIC (8H INITIAL -> CLAIM -> AUTO 6H)
+    ------------------------------------------------------------- */
+    function getTotalMiningSpeed() {
+      return AppState.mining.baseSpeed + AppState.mining.extraSpeed;
+    }
+
+    function handleStartMiningClick() {
+      if (!AppState.user.verified) {
+        showToast("Verification required! Pay 0.5 TON to unlock.");
+        openVerificationModal();
+        return;
+      }
+
+      if (AppState.mining.isActive) return;
+
+      AppState.mining.isActive = true;
+      AppState.mining.startedAt = Date.now();
+      // First session: 8 hours
+      AppState.mining.durationSeconds = STORM_CONFIG.INITIAL_MINING_DURATION_SEC;
+      AppState.mining.sessionCount = 1;
+      persistState();
+
+      showToast("8-Hour Mining started! ⚡");
+      renderMiningView();
+    }
+
+    function updateMiningTimer() {
+      const statusLabel = document.getElementById("miningRigStatusLabel");
+      const countdown = document.getElementById("miningCountdownTimer");
+      const progressBar = document.getElementById("miningProgressFillBar");
+      const yieldAccumulated = document.getElementById("miningAccumulatedVal");
+      const btnStart = document.getElementById("btnStartMiningRig");
+      const btnClaim = document.getElementById("btnClaimMiningYield");
+      const cycleLabel = document.getElementById("miningCycleLabel");
+
+      const currentDuration = AppState.mining.durationSeconds || STORM_CONFIG.INITIAL_MINING_DURATION_SEC;
+      const durationHours = Math.round(currentDuration / 3600);
+
+      if (!AppState.mining.isActive) {
+        statusLabel.textContent = "STATUS: INACTIVE";
+        statusLabel.style.color = "var(--text-muted)";
+        countdown.textContent = String(durationHours).padStart(2, "0") + ":00:00";
+        progressBar.style.width = "0%";
+        yieldAccumulated.textContent = "0.000";
+        btnStart.style.display = "flex";
+        btnStart.textContent = `Start ${durationHours}H Mining`;
+        btnClaim.style.display = "none";
+        cycleLabel.textContent = `Cycle Length: ${durationHours} Hours`;
+        return;
+      }
+
+      const elapsedMs = Date.now() - AppState.mining.startedAt;
+      const totalDurationMs = currentDuration * 1000;
+      const currentProgress = Math.min(1, elapsedMs / totalDurationMs);
+
+      // Hourly accumulated yield
+      const hoursElapsed = Math.min(durationHours, elapsedMs / 3600000);
+      const accumulated = hoursElapsed * getTotalMiningSpeed();
+      AppState.balances.pendingMining = accumulated;
+
+      yieldAccumulated.textContent = accumulated.toFixed(3);
+      progressBar.style.width = `${(currentProgress * 100).toFixed(1)}%`;
+      document.getElementById("homePendingBalance").textContent = accumulated.toFixed(3);
+
+      const remainSec = Math.max(0, Math.floor((totalDurationMs - elapsedMs) / 1000));
+      const hh = String(Math.floor(remainSec / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((remainSec % 3600) / 60)).padStart(2, "0");
+      const ss = String(remainSec % 60).padStart(2, "0");
+      countdown.textContent = `${hh}:${mm}:${ss}`;
+
+      if (elapsedMs >= totalDurationMs) {
+        statusLabel.textContent = "STATUS: 8H FINISHED (CLAIM TO START 6H)";
+        statusLabel.style.color = "var(--color-success)";
+        btnStart.style.display = "none";
+        btnClaim.style.display = "flex";
+        cycleLabel.textContent = "Session ended. Claim rewards to automatically start 6H session!";
+      } else {
+        statusLabel.textContent = `STATUS: ACTIVE MINING (${durationHours}H SESSION)`;
+        statusLabel.style.color = "var(--gold-primary)";
+        btnStart.style.display = "none";
+        btnClaim.style.display = "none";
+        cycleLabel.textContent = `Mining session runs for ${durationHours}H. Next session: 6H`;
+      }
+    }
+
+    function handleClaimMiningClick() {
+      const reward = AppState.balances.pendingMining;
+      if (reward <= 0) {
+        showToast("No rewards to claim yet");
+        return;
+      }
+
+      // Add rewards to balances
+      AppState.balances.total += reward;
+      AppState.balances.available += reward;
+      AppState.balances.pendingMining = 0;
+      AppState.mining.lastClaimTime = Date.now();
+
+      // AUTOMATICALLY RESTART FOR 6 HOURS!
+      AppState.mining.isActive = true;
+      AppState.mining.startedAt = Date.now();
+      AppState.mining.durationSeconds = STORM_CONFIG.RESTART_MINING_DURATION_SEC; // 6 hours
+      AppState.mining.sessionCount = (AppState.mining.sessionCount || 0) + 1;
+
+      persistState();
+      showToast(`Claimed +${reward.toFixed(3)} STORM! Auto-started 6H session ⚡`);
+      renderGlobalStats();
+      renderMiningView();
+    }
+
+    /* -------------------------------------------------------------
+       10. 0.5 TON VERIFICATION & MANUAL ON-CHAIN PAYMENT
+    ------------------------------------------------------------- */
+    function copyCentralAddress() {
+      navigator.clipboard.writeText(STORM_CONFIG.RECEIVING_ADDRESS);
+      showToast("Receiving TON address copied!");
+    }
+
+    function openVerificationModal() {
+      document.getElementById("verifyTxHashInput").value = "";
+      document.getElementById("verificationModal").classList.add("show");
+    }
+
+    function submitVerificationPayment() {
+      const hash = document.getElementById("verifyTxHashInput").value.trim();
+      if (!hash) {
+        showToast("Enter a valid Transaction Hash / ID");
+        return;
+      }
+
+      const tx = {
+        id: "VERIFY-" + Math.floor(1000 + Math.random() * 9000),
+        type: "0.5 TON Account Verification",
+        amount: "0.5 TON",
+        hash: hash,
+        status: "PENDING",
+        date: new Date().toLocaleDateString()
+      };
+
+      AppState.transactions.unshift(tx);
+      persistState();
+      closeModal("verificationModal");
+      renderTxHistory();
+
+      showToast("Submitted! Awaiting admin review.");
+    }
+
+    /* -------------------------------------------------------------
+       11. MINER SHOP (PHOTOS + SPEED ADDED ON PURCHASE)
+    ------------------------------------------------------------- */
+    function renderMinersShop() {
+      const box = document.getElementById("minerCardsContainer");
+      box.innerHTML = "";
+
+      MINER_LIST.forEach(miner => {
+        const div = document.createElement("div");
+        div.className = "miner-card";
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="miner-photo-box">
+              <img src="${miner.imgUrl}" alt="${miner.name}" class="miner-photo-img" onerror="this.src='https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg'" />
+            </div>
+            <div>
+              <div style="font-weight:800; font-size:14px;">${miner.name}</div>
+              <div style="font-size:11px; color:var(--gold-primary); font-weight:700;">+${miner.speed} STORM / hr</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px; font-weight:900; color:var(--gold-primary); margin-bottom:4px;">${miner.priceTon} TON</div>
+            <button class="btn-3d" style="padding:6px 14px; font-size:11px;" onclick="openMinerBuyModal('${miner.id}')">
+              Purchase
+            </button>
+          </div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function openMinerBuyModal(minerId) {
+      const miner = MINER_LIST.find(m => m.id === minerId);
+      if (!miner) return;
+      selectedMinerToBuy = miner;
+
+      document.getElementById("buyMinerTitle").textContent = `Buy ${miner.name}`;
+      document.getElementById("buyMinerPriceTon").textContent = `${miner.priceTon} TON (+${miner.speed} STORM/h)`;
+      document.getElementById("minerTxHashInput").value = "";
+      document.getElementById("minerBuyModal").classList.add("show");
+    }
+
+    function submitMinerPurchase() {
+      const hash = document.getElementById("minerTxHashInput").value.trim();
+      if (!hash) {
+        showToast("Enter transaction hash for verification");
+        return;
+      }
+
+      const tx = {
+        id: "MINER-" + Math.floor(1000 + Math.random() * 9000),
+        type: `Hardware: ${selectedMinerToBuy.name}`,
+        minerId: selectedMinerToBuy.id,
+        minerSpeed: selectedMinerToBuy.speed,
+        amount: `${selectedMinerToBuy.priceTon} TON`,
+        hash: hash,
+        status: "PENDING",
+        date: new Date().toLocaleDateString()
+      };
+
+      AppState.transactions.unshift(tx);
+      persistState();
+      closeModal("minerBuyModal");
+      renderTxHistory();
+
+      showToast("Purchase submitted! Tap transaction to verify.");
+    }
+
+    // Payment and miner requests remain pending in the client until a trusted
+    // administrator/backend confirms them. Users cannot approve their own requests.
+
+    /* -------------------------------------------------------------
+       12. REAL TASKS (EVERY 24 HOURS COMPLETION)
+    ------------------------------------------------------------- */
+    function renderTasks() {
+      const box = document.getElementById("tasksCardsContainer");
+      box.innerHTML = "";
+      const now = Date.now();
+
+      TASKS_LIST.forEach(task => {
+        const lastDoneTime = AppState.completedTasks[task.id] || 0;
+        const diff = now - lastDoneTime;
+        const isEligible = (lastDoneTime === 0) || (diff >= 86400000);
+
+        let buttonHtml = "";
+        let timerText = "";
+
+        if (isEligible) {
+          buttonHtml = `<button class="btn-3d" style="padding:6px 14px; font-size:11px;" onclick="triggerTask('${task.id}')">Start</button>`;
+          timerText = `<span style="color:var(--color-success); font-weight:700;">Ready to Claim</span>`;
+        } else {
+          const remainMs = 86400000 - diff;
+          const hh = Math.floor(remainMs / 3600000);
+          const mm = Math.floor((remainMs % 3600000) / 60000);
+          buttonHtml = `<button class="btn-3d-secondary" style="border-color:var(--color-success); color:var(--color-success);" disabled>DONE</button>`;
+          timerText = `<span style="color:var(--text-dim);">Reset in ${hh}h ${mm}m</span>`;
+        }
+
+        const item = document.createElement("div");
+        item.className = "task-item";
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:700; font-size:13px;">${task.title}</div>
+            <div style="font-size:11px; color:var(--gold-primary); font-weight:800; margin-top:2px;">
+              +${task.reward} STORM • ${timerText}
+            </div>
+          </div>
+          <div>${buttonHtml}</div>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    function triggerTask(taskId) {
+      const task = TASKS_LIST.find(t => t.id === taskId);
+      if (!task) return;
+
+      const lastDoneTime = AppState.completedTasks[taskId] || 0;
+      if (lastDoneTime > 0 && (Date.now() - lastDoneTime < 86400000)) {
+        showToast("Task completed already today! Resets in 24 hours.");
+        return;
+      }
+
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(task.link);
+      } else {
+        window.open(task.link, "_blank");
+      }
+
+      showToast("Verifying task completion...");
+
+      setTimeout(() => {
+        AppState.completedTasks[taskId] = Date.now();
+        AppState.balances.total += task.reward;
+        AppState.balances.available += task.reward;
+        persistState();
+        showToast(`Task Complete! +${task.reward} STORM`);
+        renderGlobalStats();
+        renderTasks();
+      }, 3500);
+    }
+
+    function drawWheelCanvas() {
+      const canvas = document.getElementById("wheelCanvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const count = SPIN_SEGMENTS.length;
+      const arc = (2 * Math.PI) / count;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = cx - 10;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < count; i++) {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = SPIN_SEGMENTS[i].bg;
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, angle, angle + arc);
+        ctx.lineTo(cx, cy);
+        ctx.fill();
+
+        ctx.strokeStyle = "#262A34";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = SPIN_SEGMENTS[i].text;
+        ctx.font = "bold 22px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillText(SPIN_SEGMENTS[i].label, r - 20, 8);
+        ctx.restore();
+      }
+    }
+
+    function updateSpinCountdown() {
+      const btn = document.getElementById("btnTriggerSpin");
+      const label = document.getElementById("spinTimerTxt");
+      const last = AppState.spinWheel.lastSpinTimestamp || 0;
+      const diff = Date.now() - last;
+      const cooldown = 86400000;
+
+      if (diff >= cooldown) {
+        label.textContent = "Ready";
+        label.style.color = "var(--gold-primary)";
+        if (!isSpinningWheel) btn.disabled = false;
+      } else {
+        btn.disabled = true;
+        const remain = cooldown - diff;
+        const hh = String(Math.floor(remain / 3600000)).padStart(2, "0");
+        const mm = String(Math.floor((remain % 3600000) / 60000)).padStart(2, "0");
+        const ss = String(Math.floor((remain % 60000) / 1000)).padStart(2, "0");
+        label.textContent = `${hh}:${mm}:${ss}`;
+        label.style.color = "var(--text-muted)";
+      }
+    }
+
+    function handleSpinWheelClick() {
+      const last = AppState.spinWheel.lastSpinTimestamp || 0;
+      if (Date.now() - last < 86400000 || isSpinningWheel) return;
+
+      isSpinningWheel = true;
+      document.getElementById("btnTriggerSpin").disabled = true;
+
+      const chosenIndex = Math.floor(Math.random() * SPIN_SEGMENTS.length);
+      const chosenPrize = SPIN_SEGMENTS[chosenIndex];
+
+      const segmentAngle = 360 / SPIN_SEGMENTS.length;
+      const stopDegree = (360 - (chosenIndex * segmentAngle) - (segmentAngle / 2) + 270) % 360;
+      const fullTurns = 360 * 5;
+      wheelRotationAngle += fullTurns + (stopDegree - (wheelRotationAngle % 360));
+
+      const canvas = document.getElementById("wheelCanvas");
+      canvas.style.transform = `rotate(${wheelRotationAngle}deg)`;
+
+      setTimeout(() => {
+        isSpinningWheel = false;
+        AppState.spinWheel.lastSpinTimestamp = Date.now();
+        AppState.balances.total += chosenPrize.value;
+        AppState.balances.available += chosenPrize.value;
+
+        persistState();
+        showToast(`🎉 You won ${chosenPrize.value} STORM!`);
+        renderGlobalStats();
+        updateSpinCountdown();
+      }, 4200);
+    }
+
+    /* -------------------------------------------------------------
+       13. 7-DAY LOGIN STREAK
+    ------------------------------------------------------------- */
+    function renderStreakCalendar() {
+      const grid = document.getElementById("streakCellsContainer");
+      grid.innerHTML = "";
+      const current = AppState.streak.currentDay;
+      const todayStr = new Date().toDateString();
+      const claimedToday = AppState.streak.lastClaimDate === todayStr;
+
+      const btn = document.getElementById("btnCheckInDaily");
+      btn.disabled = claimedToday;
+      btn.textContent = claimedToday ? "Claimed" : "Check In";
+
+      for (let i = 1; i <= 7; i++) {
+        const isPastClaimed = i < current || (i === current && claimedToday);
+        const isToday = i === current;
+        const cell = document.createElement("div");
+        cell.className = `streak-day-cell ${isPastClaimed ? "claimed" : ""} ${isToday ? "today" : ""}`;
+        cell.innerHTML = `
+          <div style="font-size:9px; color:var(--text-dim);">D${i}</div>
+          <div style="margin-top:2px;">+${STREAK_VALUES[i-1]}</div>
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    function claimDailyStreakReward() {
+      const todayStr = new Date().toDateString();
+      if (AppState.streak.lastClaimDate === todayStr) {
+        showToast("Already claimed today!");
+        return;
+      }
+
+      const reward = STREAK_VALUES[AppState.streak.currentDay - 1] || 10;
+      AppState.balances.total += reward;
+      AppState.balances.available += reward;
+      AppState.streak.lastClaimDate = todayStr;
+
+      if (AppState.streak.currentDay >= 7) {
+        AppState.streak.currentDay = 1;
+      } else {
+        AppState.streak.currentDay += 1;
+      }
+
+      persistState();
+      showToast(`Login Bonus: +${reward} STORM`);
+      renderGlobalStats();
+      renderStreakCalendar();
+    }
+
+    /* -------------------------------------------------------------
+       14. FULL TEAM SECTION (REFERRAL STATS & 10% COMMISSIONS)
+    ------------------------------------------------------------- */
+    function copyReferralLink() {
+      const link = document.getElementById("refLinkDisplay").textContent;
+      navigator.clipboard.writeText(link);
+      showToast("Referral link copied!");
+    }
+
+    function shareReferralLink() {
+      const link = document.getElementById("refLinkDisplay").textContent;
+      const text = encodeURIComponent("Join my STORM Mining Syndicate on TON! ⚡");
+      const url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`;
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
+
+    function renderTeamSection() {
+      const totalCount = AppState.teamMembers.length;
+      const verifiedMembers = AppState.teamMembers.filter(m => m.verified);
+      const verifiedCount = verifiedMembers.length;
+
+      // 10% reward from all verified referrals' earnings
+      let commissionEarned = 0;
+      verifiedMembers.forEach(m => {
+        commissionEarned += (m.earnings * 0.10);
+      });
+
+      document.getElementById("teamTotalCount").textContent = totalCount;
+      document.getElementById("teamVerifiedCount").textContent = verifiedCount;
+      document.getElementById("teamTotalEarnings").textContent = commissionEarned.toFixed(2);
+
+      const listContainer = document.getElementById("teamMembersListContainer");
+      listContainer.innerHTML = "";
+
+      if (AppState.teamMembers.length === 0) {
+        listContainer.innerHTML = `<div style="font-size:12px; color:var(--text-dim); text-align:center; padding:12px;">No team members yet. Share your invite link!</div>`;
+        return;
+      }
+
+      AppState.teamMembers.forEach(member => {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface); padding:10px 12px; border-radius:var(--radius-md); border:1px solid var(--border-color); font-size:12px;";
+        
+        const badgeHtml = member.verified 
+          ? `<span class="status-badge badge-verified">VERIFIED</span>`
+          : `<span class="status-badge badge-unverified">UNVERIFIED</span>`;
+
+        const bonus = member.verified ? (member.earnings * 0.10).toFixed(1) : "0.0";
+
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:700;">${member.username}</div>
+            <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">Joined: ${member.date}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="margin-bottom:3px;">${badgeHtml}</div>
+            <div style="font-size:11px; font-weight:700; color:var(--gold-primary);">+${bonus} STORM (10%)</div>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+    }
+
+    /* -------------------------------------------------------------
+       15. WITHDRAWALS (MIN 5000 STORM & 300 FEE & 2 VERIFIED REFS)
+    ------------------------------------------------------------- */
+    function updateWithdrawalEligibilityUI() {
+      const statusText = document.getElementById("withdrawEligibilityText");
+      const avail = AppState.balances.available;
+      const verifiedCount = AppState.teamMembers.filter(m => m.verified).length;
+
+      if (avail < STORM_CONFIG.MIN_WITHDRAWAL_STORM && verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
+        statusText.textContent = `Need ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM & 2 Verified Refs`;
+        statusText.style.color = "var(--color-danger)";
+      } else if (avail < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
+        statusText.textContent = `Min. ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM required`;
+        statusText.style.color = "var(--color-danger)";
+      } else if (verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
+        statusText.textContent = `Need ${STORM_CONFIG.MIN_VERIFIED_REFERRALS - verifiedCount} more Verified Ref(s)`;
+        statusText.style.color = "var(--color-danger)";
+      } else {
+        statusText.textContent = "ELIGIBLE";
+        statusText.style.color = "var(--color-success)";
+      }
+    }
+
+    function updateWithdrawalBreakdown() {
+      const input = document.getElementById("inputWithdrawAmount");
+      const netText = document.getElementById("modalNetPayoutText");
+      const val = parseFloat(input.value) || 0;
+      const net = Math.max(0, val - STORM_CONFIG.WITHDRAWAL_FEE_STORM);
+      netText.textContent = `${net.toFixed(2)} STORM`;
+    }
+
+    function openWithdrawModal() {
+      const verifiedCount = AppState.teamMembers.filter(m => m.verified).length;
+
+      if (AppState.balances.available < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
+        showToast(`Minimum withdrawal is ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM`);
+        return;
+      }
+      if (verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
+        showToast(`Requires at least ${STORM_CONFIG.MIN_VERIFIED_REFERRALS} verified referrals (paid 0.5 TON)`);
+        return;
+      }
+
+      document.getElementById("modalWithdrawAvailable").textContent = `${AppState.balances.available.toFixed(3)} STORM`;
+      document.getElementById("inputWithdrawAmount").value = STORM_CONFIG.MIN_WITHDRAWAL_STORM;
+      updateWithdrawalBreakdown();
+      document.getElementById("inputWithdrawDestination").value = AppState.user.savedTonWallet || "";
+      document.getElementById("withdrawModal").classList.add("show");
+    }
+
+    function submitWithdrawalForm() {
+      const amount = parseFloat(document.getElementById("inputWithdrawAmount").value);
+      const address = document.getElementById("inputWithdrawDestination").value.trim();
+
+      if (isNaN(amount) || amount < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
+        showToast(`Minimum withdrawal is ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM`);
+        return;
+      }
+      if (amount > AppState.balances.available) {
+        showToast("Amount exceeds available balance");
+        return;
+      }
+      if (!address || address.length < 24) {
+        showToast("Enter a valid TON recipient address");
+        return;
+      }
+
+      const netPayout = amount - STORM_CONFIG.WITHDRAWAL_FEE_STORM;
+      if (netPayout <= 0) {
+        showToast("Withdrawal amount must exceed the 300 STORM fee");
+        return;
+      }
+
+      // Deduct balance including fee
+      AppState.balances.total -= amount;
+      AppState.balances.available -= amount;
+
+      const tx = {
+        id: "WD-" + Math.floor(1000 + Math.random() * 9000),
+        type: `Withdrawal (${netPayout.toFixed(1)} + 300 fee)`,
+        amount: `${amount.toFixed(2)} STORM`,
+        status: "PENDING",
+        date: new Date().toLocaleDateString()
+      };
+
+      AppState.transactions.unshift(tx);
+      persistState();
+      closeModal("withdrawModal");
+      renderGlobalStats();
+      renderTxHistory();
+
+      showToast(`Submitted! ${netPayout.toFixed(2)} STORM (Fee: 300 STORM)`);
+    }
+
+    /* -------------------------------------------------------------
+       16. TRANSACTION HISTORY & INTERACTIVE APPROVAL
+    ------------------------------------------------------------- */
+    function renderTxHistory() {
+      const box = document.getElementById("txHistoryContainer");
+      box.innerHTML = "";
+
+      if (AppState.transactions.length === 0) {
+        box.innerHTML = `<div style="font-size:11px; color:var(--text-dim); text-align:center; padding:10px;">No transactions recorded.</div>`;
+        return;
+      }
+
+      AppState.transactions.forEach(t => {
+        const row = document.createElement("div");
+        row.className = "tx-row";
+        row.style.cursor = "default";
+
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:700;">${t.type}</div>
+            <div style="font-size:10px; color:var(--text-dim);">${t.date} • ${t.id}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:800; color:var(--gold-primary);">${t.amount}</div>
+            <span class="tx-status status-${t.status}">${t.status}</span>
+          </div>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    /* -------------------------------------------------------------
+       17. GLOBAL RENDER DISPATCHER
+    ------------------------------------------------------------- */
+    function renderGlobalStats() {
+      document.getElementById("homeTotalBalance").textContent = AppState.balances.total.toFixed(3);
+      document.getElementById("homeAvailBalance").textContent = AppState.balances.available.toFixed(3);
+      document.getElementById("homePendingBalance").textContent = AppState.balances.pendingMining.toFixed(3);
+      document.getElementById("withdrawAvailBal").textContent = AppState.balances.available.toFixed(3);
+
+      const speed = getTotalMiningSpeed();
+      document.getElementById("miningPowerText").textContent = `${speed.toFixed(1)} STORM/h`;
+      document.getElementById("miningTierText").textContent = AppState.mining.extraSpeed > 0 
+        ? `Hardware (+${AppState.mining.extraSpeed} STORM/h)` 
+        : "Tier 1 Free";
+
+      updateVerificationBadges();
+      recalculateUSD();
+      renderTeamSection();
+      updateWithdrawalEligibilityUI();
+      updateSavedWalletUI();
+    }
+
+    function renderMiningView() {
+      renderGlobalStats();
+      updateMiningTimer();
+    }
+
+    function switchTab(pageId, navButton) {
+      document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+
+      const target = document.getElementById(pageId);
+      if (target) target.classList.add("active");
+
+      if (navButton) {
+        navButton.classList.add("active");
+      } else {
+        const match = Array.from(document.querySelectorAll(".nav-item")).find(btn => 
+          btn.getAttribute("onclick")?.includes(pageId)
+        );
+        if (match) match.classList.add("active");
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove("show");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.classList.remove("show");
+      });
+    });
+
+    /* -------------------------------------------------------------
+       18. BOOTSTRAP INITIALIZATION
+    ------------------------------------------------------------- */
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadSavedState();
+      initTelegramSDK();
+      drawWheelCanvas();
+      renderMinersShop();
+      renderTasks();
+      renderStreakCalendar();
+      renderTxHistory();
+      renderGlobalStats();
+      renderMiningView();
+
+      fetchDexScreenerPrice();
+
+      setInterval(updateMiningTimer, 1000);
+      setInterval(updateSpinCountdown, 1000);
+      setInterval(() => renderTasks(), 60000); // Check 24h task timers every minute
+      setInterval(() => fetchDexScreenerPrice(false), 45000);
+    });
+  </script>
+</body>
+</html>
