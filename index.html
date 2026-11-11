@@ -533,6 +533,35 @@
     .toast-msg.show {
       transform: translateX(-50%) translateY(0);
     }
+
+    /* STORM visual refresh */
+    body { background: #080A0D; background-image: radial-gradient(ellipse at 50% -15%, #29230B 0%, #101216 36%, #080A0D 76%); }
+    .app-viewport { gap: 15px; padding: 14px 13px 94px; }
+    .top-header { border-radius: 17px; padding: 12px 15px; background: #171A20; border-color: #34302A; box-shadow: 0 5px 0 #08090B; }
+    .solid-card { background: #151920; border: 1px solid #2A303A; border-radius: 19px; padding: 17px; box-shadow: 0 5px 0 #080A0D; }
+    .mining-hero-card { background: linear-gradient(155deg, #211D0D 0%, #151920 46%, #11151B 100%); border: 1px solid #9B7900; box-shadow: 0 6px 0 #08090B, inset 0 1px 0 #51420F; padding: 23px 16px; gap: 16px; }
+    .mining-logo-frame { width: 118px; height: 118px; border: 4px solid #FFD000; box-shadow: 0 0 0 6px rgba(255,208,0,.08), 0 9px 22px rgba(0,0,0,.5); }
+    .stat-box { background: #202630; border-color: #303845; border-radius: 13px; padding: 12px; }
+    .btn-3d { border-radius: 13px; min-height: 46px; box-shadow: 0 2px 0 rgba(255,255,255,.12) inset; letter-spacing: .65px; }
+    .btn-3d-secondary { border-radius: 11px; }
+    .miner-card, .task-item { background: #171C24; border: 1px solid #303744; border-radius: 15px; padding: 13px; box-shadow: 0 4px 0 #090B0E; }
+    .miner-photo-box { width: 64px; height: 64px; border-radius: 13px; border-color: #4B421D; }
+    .card-title { color: #B8BECA; font-size: 11px; letter-spacing: 1.05px; }
+    .bottom-nav { background: #11151B; border-top: 1px solid #303744; box-shadow: 0 -8px 25px rgba(0,0,0,.28); height: 72px; }
+    .nav-item { font-size: 9px; letter-spacing: .5px; }
+    .modal-overlay { backdrop-filter: blur(7px); background: rgba(0,0,0,.82); }
+    .modal-window { background: #171C24; border: 1px solid #4A421F; border-radius: 21px; box-shadow: 0 18px 60px rgba(0,0,0,.55); max-height: 88vh; overflow-y: auto; }
+    .input-field { background: #0D1117; border-color: #343C49; border-radius: 12px; padding: 14px; }
+    .address-display-box { background: #090C11; border-color: #393F49; border-radius: 10px; line-height: 1.6; }
+    .payment-session-panel { background: linear-gradient(135deg,#29230E,#171C24); border: 1px solid #8D7100; border-radius: 14px; padding: 13px; }
+    .payment-session-top { display:flex; justify-content:space-between; align-items:center; gap:8px; color:#B7BCCA; font-size:10px; font-weight:800; letter-spacing:.8px; }
+    .payment-session-top strong { color:#FFD000; font-size:12px; }
+    .payment-session-amount { color:#FFD000; font-size:25px; font-weight:900; margin-top:7px; }
+    .payment-session-hint { color:#AEB5C2; font-size:11px; line-height:1.5; margin-top:3px; }
+    .verification-warning { background:#241E0D; border:1px solid #8D7100; border-radius:15px; }
+    button { touch-action: manipulation; }
+    @media (max-width:360px) { .grid-3 { gap:5px; } .stat-box { padding:8px; } .stat-value { font-size:13px; } .modal-window { padding:16px; } }
+
   </style>
 </head>
 <body>
@@ -880,7 +909,7 @@
     <div class="modal-window">
       <div class="card-title">0.5 TON Account Verification</div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Send exactly <strong>0.5 TON</strong> to our official receiving address. Submit the transaction hash for administrator review.
+        Create a 4-minute payment request, send exactly <strong>0.5 TON</strong> to the official address, then verify your wallet transaction hash.
       </div>
 
       <div>
@@ -891,6 +920,11 @@
         </button>
       </div>
 
+      <div class="payment-session-panel">
+        <div class="payment-session-top"><span>PAYMENT SESSION</span><strong id="verifyPaymentCountdown">Creating request...</strong></div>
+        <div class="payment-session-amount" id="verifyPaymentAmount">0.5 TON</div>
+        <div class="payment-session-hint" id="verifyPaymentHint">A 4-minute payment window starts when this request is created.</div>
+      </div>
       <div>
         <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash (from Tonkeeper / Explorer):</label>
         <input type="text" id="verifyTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
@@ -898,7 +932,7 @@
 
       <div style="display: flex; gap: 8px; margin-top: 6px;">
         <button class="btn-3d" style="flex: 1;" onclick="submitVerificationPayment()">
-          Submit Review
+          Verify Payment
         </button>
         <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('verificationModal')">
           Cancel
@@ -914,7 +948,7 @@
     <div class="modal-window">
       <div class="card-title" id="buyMinerTitle">Purchase Miner</div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Send the specified TON amount to the official receiving address and submit your transaction hash.
+        Create a 4-minute payment request, send the exact amount to the official address, then verify your wallet transaction hash.
       </div>
 
       <div class="stat-box">
@@ -930,6 +964,11 @@
         </button>
       </div>
 
+      <div class="payment-session-panel">
+        <div class="payment-session-top"><span>PAYMENT SESSION</span><strong id="minerPaymentCountdown">Creating request...</strong></div>
+        <div class="payment-session-amount" id="minerPaymentAmount">-- TON</div>
+        <div class="payment-session-hint" id="minerPaymentHint">A 4-minute payment window starts when this request is created.</div>
+      </div>
       <div>
         <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash:</label>
         <input type="text" id="minerTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
@@ -937,7 +976,7 @@
 
       <div style="display: flex; gap: 8px; margin-top: 6px;">
         <button class="btn-3d" style="flex: 1;" onclick="submitMinerPurchase()">
-          Submit Purchase
+          Verify Purchase
         </button>
         <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('minerBuyModal')">
           Cancel
@@ -1003,6 +1042,7 @@
        1. GLOBAL CONFIGURATION & SYSTEM CONSTANTS
     ------------------------------------------------------------- */
     const STORM_CONFIG = {
+      API_BASE_URL: "https://storm-backend2.vercel.app",
       TOKEN_SYMBOL: "STORM",
       BLOCKCHAIN: "TON",
       // Single official receiving TON address for ALL payments:
@@ -1143,6 +1183,9 @@
     let selectedMinerToBuy = null;
     let isSpinningWheel = false;
     let wheelRotationAngle = 0;
+    let activePaymentRequest = null;
+    let paymentCountdownInterval = null;
+    let activePaymentKind = null;
 
     /* -------------------------------------------------------------
        5. STORAGE SYNCHRONIZATION
@@ -1494,33 +1537,135 @@
       showToast("Receiving TON address copied!");
     }
 
+    function telegramInitData() {
+      return window.Telegram?.WebApp?.initData || "";
+    }
+
+    async function createPaymentSession(paymentType, kind) {
+      const initData = telegramInitData();
+      if (!initData) {
+        showToast("Open STORM inside Telegram to create a payment request.");
+        return;
+      }
+      activePaymentRequest = null;
+      activePaymentKind = kind;
+      clearInterval(paymentCountdownInterval);
+      const ids = kind === "verification"
+        ? ["verifyPaymentCountdown", "verifyPaymentAmount", "verifyPaymentHint"]
+        : ["minerPaymentCountdown", "minerPaymentAmount", "minerPaymentHint"];
+      const [countdownEl, amountEl, hintEl] = ids.map(id => document.getElementById(id));
+      countdownEl.textContent = "Creating...";
+      hintEl.textContent = "Connecting to the STORM payment server. Wait for the address and timer.";
+
+      try {
+        const response = await fetch(`${STORM_CONFIG.API_BASE_URL}/create-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ init_data: initData, payment_type: paymentType })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) throw new Error(data.error || data.detail || "Could not create payment request");
+        activePaymentRequest = {
+          id: data.payment_request_id,
+          paymentType,
+          kind,
+          expiresAt: Date.parse(data.expires_at)
+        };
+        STORM_CONFIG.RECEIVING_ADDRESS = data.destination_address;
+        document.getElementById("verifyReceivingAddress").textContent = data.destination_address;
+        document.getElementById("minerReceivingAddress").textContent = data.destination_address;
+        amountEl.textContent = `${Number(data.amount_ton).toFixed(paymentType === "verification" ? 1 : 2)} TON`;
+        hintEl.textContent = "Send the exact amount to this address, then paste the transaction hash from your wallet history.";
+        updatePaymentCountdown();
+        paymentCountdownInterval = setInterval(updatePaymentCountdown, 1000);
+      } catch (error) {
+        countdownEl.textContent = "Not created";
+        hintEl.textContent = error.message || "Payment server unavailable. Try again.";
+        showToast(error.message || "Could not create payment request");
+      }
+    }
+
+    function updatePaymentCountdown() {
+      if (!activePaymentRequest) return;
+      const remaining = Math.max(0, Math.ceil((activePaymentRequest.expiresAt - Date.now()) / 1000));
+      const id = activePaymentRequest.kind === "verification" ? "verifyPaymentCountdown" : "minerPaymentCountdown";
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = remaining > 0
+        ? `${String(Math.floor(remaining / 60)).padStart(2,"0")}:${String(remaining % 60).padStart(2,"0")} LEFT`
+        : "EXPIRED";
+      if (remaining <= 0) {
+        clearInterval(paymentCountdownInterval);
+        activePaymentRequest = null;
+      }
+    }
+
+    async function verifyPaymentHash(inputId, kind) {
+      const hash = document.getElementById(inputId).value.trim();
+      if (!hash) { showToast("Paste the transaction hash from your TON wallet."); return null; }
+      if (!telegramInitData()) { showToast("Open STORM inside Telegram to verify payment."); return null; }
+      if (!activePaymentRequest || activePaymentRequest.kind !== kind) {
+        showToast("Payment request missing or expired. Close and reopen this payment.");
+        return null;
+      }
+      if (Date.now() > activePaymentRequest.expiresAt) {
+        clearInterval(paymentCountdownInterval);
+        activePaymentRequest = null;
+        showToast("4-minute payment window expired. Create a new request.");
+        return null;
+      }
+
+      const buttonSelector = kind === "verification"
+        ? '#verificationModal button[onclick="submitVerificationPayment()"]'
+        : '#minerBuyModal button[onclick="submitMinerPurchase()"]';
+      const button = document.querySelector(buttonSelector);
+      if (button) { button.disabled = true; button.textContent = "VERIFYING..."; }
+      try {
+        const response = await fetch(`${STORM_CONFIG.API_BASE_URL}/verify-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            init_data: telegramInitData(),
+            payment_request_id: activePaymentRequest.id,
+            tx_hash: hash
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.verified) throw new Error(data.error || data.detail || "Payment verification failed");
+        clearInterval(paymentCountdownInterval);
+        activePaymentRequest = null;
+        return data;
+      } catch (error) {
+        showToast(error.message || "Verification failed. Check the hash and try again.");
+        return null;
+      } finally {
+        if (button) { button.disabled = false; button.textContent = kind === "verification" ? "Verify Payment" : "Verify Purchase"; }
+      }
+    }
+
     function openVerificationModal() {
       document.getElementById("verifyTxHashInput").value = "";
       document.getElementById("verificationModal").classList.add("show");
+      createPaymentSession("verification", "verification");
     }
 
-    function submitVerificationPayment() {
-      const hash = document.getElementById("verifyTxHashInput").value.trim();
-      if (!hash) {
-        showToast("Enter a valid Transaction Hash / ID");
-        return;
-      }
-
-      const tx = {
-        id: "VERIFY-" + Math.floor(1000 + Math.random() * 9000),
+    async function submitVerificationPayment() {
+      const result = await verifyPaymentHash("verifyTxHashInput", "verification");
+      if (!result) return;
+      AppState.user.verified = true;
+      AppState.transactions.unshift({
+        id: "VERIFY-" + result.tx_hash.slice(0, 8),
         type: "0.5 TON Account Verification",
         amount: "0.5 TON",
-        hash: hash,
-        status: "PENDING",
+        hash: result.tx_hash,
+        status: "APPROVED",
         date: new Date().toLocaleDateString()
-      };
-
-      AppState.transactions.unshift(tx);
+      });
       persistState();
       closeModal("verificationModal");
       renderTxHistory();
-
-      showToast("Submitted! Awaiting admin review.");
+      renderGlobalStats();
+      showToast("0.5 TON payment verified.");
     }
 
     /* -------------------------------------------------------------
@@ -1563,36 +1708,30 @@
       document.getElementById("buyMinerPriceTon").textContent = `${miner.priceTon} TON (+${miner.speed} STORM/h)`;
       document.getElementById("minerTxHashInput").value = "";
       document.getElementById("minerBuyModal").classList.add("show");
+      createPaymentSession(miner.id, "miner");
     }
 
-    function submitMinerPurchase() {
-      const hash = document.getElementById("minerTxHashInput").value.trim();
-      if (!hash) {
-        showToast("Enter transaction hash for verification");
-        return;
-      }
-
-      const tx = {
-        id: "MINER-" + Math.floor(1000 + Math.random() * 9000),
+    async function submitMinerPurchase() {
+      if (!selectedMinerToBuy) return;
+      const result = await verifyPaymentHash("minerTxHashInput", "miner");
+      if (!result) return;
+      AppState.transactions.unshift({
+        id: "MINER-" + result.tx_hash.slice(0, 8),
         type: `Hardware: ${selectedMinerToBuy.name}`,
         minerId: selectedMinerToBuy.id,
         minerSpeed: selectedMinerToBuy.speed,
         amount: `${selectedMinerToBuy.priceTon} TON`,
-        hash: hash,
-        status: "PENDING",
+        hash: result.tx_hash,
+        status: "APPROVED",
         date: new Date().toLocaleDateString()
-      };
-
-      AppState.transactions.unshift(tx);
+      });
+      recalculateHardwareSpeed();
       persistState();
       closeModal("minerBuyModal");
       renderTxHistory();
-
-      showToast("Purchase submitted! Tap transaction to verify.");
+      renderGlobalStats();
+      showToast(`${selectedMinerToBuy.name} payment verified.`);
     }
-
-    // Payment and miner requests remain pending in the client until a trusted
-    // administrator/backend confirms them. Users cannot approve their own requests.
 
     /* -------------------------------------------------------------
        12. REAL TASKS (EVERY 24 HOURS COMPLETION)
@@ -2046,6 +2185,10 @@
     function closeModal(id) {
       const modal = document.getElementById(id);
       if (modal) modal.classList.remove("show");
+      if (id === "verificationModal" || id === "minerBuyModal") {
+        clearInterval(paymentCountdownInterval);
+        activePaymentRequest = null;
+      }
     }
 
     function showToast(msg) {
