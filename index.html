@@ -1615,6 +1615,8 @@
     let activePaymentRequest = null;
     let paymentCountdownInterval = null;
     let activePaymentKind = null;
+    let serverApprovedPaymentIds = new Set();
+    let paymentStatusSyncBusy = false;
 
     /* -------------------------------------------------------------
        5. STORAGE SYNCHRONIZATION
@@ -1695,17 +1697,83 @@
       } catch (err) {}
     }
 
-    // Ensures approved miner purchases are added to extraSpeed
+    // Miner speed is granted only for payment request IDs approved by the backend.
     function recalculateHardwareSpeed() {
       let extra = 0;
       if (Array.isArray(AppState.transactions)) {
         AppState.transactions.forEach(t => {
-          if (t.status === "APPROVED" && t.minerSpeed) {
-            extra += parseFloat(t.minerSpeed);
+          if (t.status === "APPROVED" && t.paymentRequestId &&
+              serverApprovedPaymentIds.has(t.paymentRequestId) && t.minerSpeed) {
+            extra += parseFloat(t.minerSpeed) || 0;
           }
         });
       }
       AppState.mining.extraSpeed = extra;
+    }
+
+    async function syncPaymentStatus(silent = true) {
+      if (paymentStatusSyncBusy || !telegramInitData()) return;
+      paymentStatusSyncBusy = true;
+      try {
+        const response = await fetch(`${STORM_CONFIG.API_BASE_URL}/payment-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ init_data: telegramInitData() }),
+          cache: "no-store"
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || data.detail || "Could not sync payment status");
+        }
+
+        const previous = new Map((AppState.transactions || [])
+          .filter(t => t.paymentRequestId)
+          .map(t => [t.paymentRequestId, t.status]));
+
+        serverApprovedPaymentIds = new Set((data.payments || [])
+          .filter(p => ["approved", "verified"].includes(p.status) && p.payment_type !== "verification")
+          .map(p => p.payment_request_id));
+        AppState.user.verified = data.verified === true;
+
+        (data.payments || []).forEach(payment => {
+          const miner = MINER_LIST.find(m => m.id === payment.payment_type);
+          const isVerification = payment.payment_type === "verification";
+          if (!isVerification && !miner) return;
+          const status = ["approved", "verified"].includes(payment.status) ? "APPROVED"
+            : payment.status === "rejected" ? "REJECTED" : "PENDING";
+          const amount = `${(Number(payment.amount_nano) / 1e9).toFixed(isVerification ? 1 : 2)} TON`;
+          const tx = {
+            id: (isVerification ? "VERIFY-" : "MINER-") + payment.payment_request_id.slice(0, 8),
+            paymentRequestId: payment.payment_request_id,
+            type: isVerification ? "0.5 TON Account Verification" : `Hardware: ${miner.name}`,
+            ...(miner ? { minerId: miner.id, minerSpeed: miner.speed } : {}),
+            amount,
+            hash: payment.tx_hash || "",
+            status,
+            date: payment.created_at ? new Date(payment.created_at).toLocaleDateString() : ""
+          };
+          const index = AppState.transactions.findIndex(t => t.paymentRequestId === payment.payment_request_id);
+          if (index >= 0) AppState.transactions[index] = tx;
+          else AppState.transactions.unshift(tx);
+
+          const oldStatus = previous.get(payment.payment_request_id);
+          if (!silent && oldStatus === "PENDING" && status === "APPROVED") {
+            showToast(isVerification ? "Account verification approved." : `${miner.name} approved and activated.`);
+          } else if (!silent && oldStatus === "PENDING" && status === "REJECTED") {
+            showToast("Payment request rejected. Contact support if needed.");
+          }
+        });
+
+        recalculateHardwareSpeed();
+        persistState();
+        updateVerificationBadges();
+        renderTxHistory();
+        renderGlobalStats();
+      } catch (error) {
+        if (!silent) showToast(error.message || "Could not refresh payment status");
+      } finally {
+        paymentStatusSyncBusy = false;
+      }
     }
 
     /* -------------------------------------------------------------
@@ -2060,7 +2128,9 @@
           })
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.verified) throw new Error(data.error || data.detail || "Payment verification failed");
+        if (!response.ok || !data.ok || data.status !== "awaiting_admin" || !data.pending) {
+          throw new Error(data.error || data.detail || "Could not submit payment for admin review");
+        }
         clearInterval(paymentCountdownInterval);
         activePaymentRequest = null;
         return data;
@@ -2081,20 +2151,20 @@
     async function submitVerificationPayment() {
       const result = await verifyPaymentHash("verifyTxHashInput", "verification");
       if (!result) return;
-      AppState.user.verified = true;
       AppState.transactions.unshift({
-        id: "VERIFY-" + result.tx_hash.slice(0, 8),
+        id: "VERIFY-" + result.payment_request_id.slice(0, 8),
+        paymentRequestId: result.payment_request_id,
         type: "0.5 TON Account Verification",
         amount: "0.5 TON",
         hash: result.tx_hash,
-        status: "APPROVED",
+        status: "PENDING",
         date: new Date().toLocaleDateString()
       });
       persistState();
       closeModal("verificationModal");
       renderTxHistory();
-      renderGlobalStats();
-      showToast("0.5 TON payment verified.");
+      showToast("Payment submitted. Verification is pending admin approval.");
+      syncPaymentStatus(true);
     }
 
     /* -------------------------------------------------------------
@@ -2142,24 +2212,25 @@
 
     async function submitMinerPurchase() {
       if (!selectedMinerToBuy) return;
+      const miner = selectedMinerToBuy;
       const result = await verifyPaymentHash("minerTxHashInput", "miner");
       if (!result) return;
       AppState.transactions.unshift({
-        id: "MINER-" + result.tx_hash.slice(0, 8),
-        type: `Hardware: ${selectedMinerToBuy.name}`,
-        minerId: selectedMinerToBuy.id,
-        minerSpeed: selectedMinerToBuy.speed,
-        amount: `${selectedMinerToBuy.priceTon} TON`,
+        id: "MINER-" + result.payment_request_id.slice(0, 8),
+        paymentRequestId: result.payment_request_id,
+        type: `Hardware: ${miner.name}`,
+        minerId: miner.id,
+        minerSpeed: miner.speed,
+        amount: `${miner.priceTon} TON`,
         hash: result.tx_hash,
-        status: "APPROVED",
+        status: "PENDING",
         date: new Date().toLocaleDateString()
       });
-      recalculateHardwareSpeed();
       persistState();
       closeModal("minerBuyModal");
       renderTxHistory();
-      renderGlobalStats();
-      showToast(`${selectedMinerToBuy.name} payment verified.`);
+      showToast("Purchase submitted. Miner activates after admin approval.");
+      syncPaymentStatus(true);
     }
 
     /* -------------------------------------------------------------
@@ -2640,7 +2711,10 @@
     ------------------------------------------------------------- */
     window.addEventListener("DOMContentLoaded", async () => {
       await loadSavedState();
+      AppState.user.verified = false;
+      serverApprovedPaymentIds = new Set();
       initTelegramSDK();
+      await syncPaymentStatus(true);
       drawWheelCanvas();
       renderMinersShop();
       renderTasks();
@@ -2655,6 +2729,7 @@
       setInterval(updateSpinCountdown, 1000);
       setInterval(() => renderTasks(), 60000); // Check 24h task timers every minute
       setInterval(() => fetchDexScreenerPrice(false), 45000);
+      setInterval(() => syncPaymentStatus(false), 15000);
     });
   </script>
 
