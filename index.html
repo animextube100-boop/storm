@@ -1263,11 +1263,11 @@
         </div>
       </section>
 
-      <!-- WITHDRAWAL SECTION (MIN 5000 STORM & 300 FEE & 2 VERIFIED REFS) -->
+      <!-- WITHDRAWAL SECTION (MIN 3000 STORM, 200 FEE, ONE PURCHASED MINER) -->
       <section class="solid-card">
         <div class="card-title">Withdraw STORM</div>
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-          <strong>Rules:</strong> Minimum 5000 STORM, 300 STORM Fixed Network Fee, and at least 2 Approved Verified Referrals.
+          <strong></strong> Minimum 3000 STORM, 200 STORM fee, and at least one approved miner purchase.
         </div>
         <div class="grid-2" style="margin-bottom: 10px;">
           <div class="stat-box">
@@ -1288,7 +1288,7 @@
       <section class="solid-card">
         <div class="card-title">
           <span>Transaction & Order History</span>
-          <span style="font-size: 10px; color: var(--text-dim);">Tap item to verify</span>
+          <span style="font-size: 10px; color: var(--text-dim);"></span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px;" id="txHistoryContainer">
           <!-- Populated by JS -->
@@ -1332,7 +1332,7 @@
     <div class="modal-window">
       <div class="card-title">0.5 TON Account Verification</div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Create a 4-minute payment request, send exactly <strong>0.5 TON</strong> to the official address, then verify your wallet transaction hash.
+        Manual payment system for anti-bot verification, send<strong>0.5 TON</strong> to the official address, then verify your wallet transaction hash.
       </div>
 
       <div>
@@ -1349,7 +1349,7 @@
         <div class="payment-session-hint" id="verifyPaymentHint">A 4-minute payment window starts when this request is created.</div>
       </div>
       <div style="font-size: 10px; color: #AEB5C2; text-align: center; margin-top: -4px;">
-        Note: Verification may take up to 30–60 minutes.
+         Verification may take up to 30–60 minutes.
       </div>
       <div>
         <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash (from Tonkeeper / Explorer):</label>
@@ -1374,7 +1374,7 @@
     <div class="modal-window">
       <div class="card-title" id="buyMinerTitle">Purchase Miner</div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Create a 4-minute payment request, send the exact amount to the official address, then verify your wallet transaction hash.
+        Manual payment system for anti-bot verification, Send exact amount to the official address, then verify your wallet transaction hash.
       </div>
 
       <div class="stat-box">
@@ -1396,7 +1396,7 @@
         <div class="payment-session-hint" id="minerPaymentHint">A 4-minute payment window starts when this request is created.</div>
       </div>
       <div style="font-size: 10px; color: #AEB5C2; text-align: center; margin-top: -4px;">
-        Note: Verification may take up to 30–60 minutes.
+         Verification may take up to 30–60 minutes.
       </div>
       <div>
         <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash:</label>
@@ -1415,7 +1415,7 @@
   </div>
 
   <!-- =========================================================
-       MODAL 3: WITHDRAWAL REQUEST (MIN 5000 + 300 FEE)
+       MODAL 3: WITHDRAWAL REQUEST (MIN 3000 + 200 FEE)
   ========================================================= -->
   <div id="withdrawModal" class="modal-overlay">
     <div class="modal-window">
@@ -1431,13 +1431,13 @@
         </div>
         <div class="stat-box">
           <div class="stat-label">System Fee</div>
-          <div class="stat-value" style="color: var(--color-warning);">300 STORM</div>
+          <div class="stat-value" style="color: var(--color-warning);">200 STORM</div>
         </div>
       </div>
 
       <div>
-        <label style="font-size: 11px; color: var(--text-muted);">Amount (Minimum 5000 STORM):</label>
-        <input type="number" id="inputWithdrawAmount" class="input-field" placeholder="5000" min="5000" style="margin-top: 4px;" oninput="updateWithdrawalBreakdown()" />
+        <label style="font-size: 11px; color: var(--text-muted);">Amount (Minimum 3000 STORM):</label>
+        <input type="number" id="inputWithdrawAmount" class="input-field" placeholder="3000" min="3000" step="0.001" style="margin-top: 4px;" oninput="updateWithdrawalBreakdown()" />
       </div>
 
       <div class="stat-box" style="background: #11141A;">
@@ -1478,9 +1478,9 @@
       RECEIVING_ADDRESS: "UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x",
       CONTRACT_ADDRESS: "EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
       DEXSCREENER_API: "https://api.dexscreener.com/latest/dex/tokens/EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
-      MIN_WITHDRAWAL_STORM: 5000,
-      WITHDRAWAL_FEE_STORM: 300,
-      MIN_VERIFIED_REFERRALS: 2,
+      MIN_WITHDRAWAL_STORM: 3000,
+      WITHDRAWAL_FEE_STORM: 200,
+      MIN_VERIFIED_REFERRALS: 0,
       VERIFICATION_COST_TON: 0.5,
       INITIAL_MINING_DURATION_SEC: 8 * 3600, // 8 hours
       RESTART_MINING_DURATION_SEC: 6 * 3600  // 6 hours
@@ -1617,6 +1617,7 @@
     let activePaymentKind = null;
     let serverApprovedPaymentIds = new Set();
     let paymentStatusSyncBusy = false;
+    let withdrawalStatusSyncBusy = false;
 
     /* -------------------------------------------------------------
        5. STORAGE SYNCHRONIZATION
@@ -2512,21 +2513,23 @@
     }
 
     /* -------------------------------------------------------------
-       15. WITHDRAWALS (MIN 5000 STORM & 300 FEE & 2 VERIFIED REFS)
+       15. WITHDRAWALS (MIN 3000 STORM, 200 FEE, MINER REQUIRED)
     ------------------------------------------------------------- */
+    function hasApprovedMinerPurchase() {
+      return (AppState.transactions || []).some(t =>
+        !!t.minerId && t.status === "APPROVED" && t.paymentRequestId &&
+        serverApprovedPaymentIds.has(t.paymentRequestId)
+      );
+    }
+
     function updateWithdrawalEligibilityUI() {
       const statusText = document.getElementById("withdrawEligibilityText");
-      const avail = AppState.balances.available;
-      const verifiedCount = AppState.teamMembers.filter(m => m.verified).length;
-
-      if (avail < STORM_CONFIG.MIN_WITHDRAWAL_STORM && verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
-        statusText.textContent = `Need ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM & 2 Verified Refs`;
+      const avail = Number(AppState.balances.available) || 0;
+      if (!hasApprovedMinerPurchase()) {
+        statusText.textContent = "Purchase a miner first";
         statusText.style.color = "var(--color-danger)";
       } else if (avail < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
         statusText.textContent = `Min. ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM required`;
-        statusText.style.color = "var(--color-danger)";
-      } else if (verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
-        statusText.textContent = `Need ${STORM_CONFIG.MIN_VERIFIED_REFERRALS - verifiedCount} more Verified Ref(s)`;
         statusText.style.color = "var(--color-danger)";
       } else {
         statusText.textContent = "ELIGIBLE";
@@ -2543,14 +2546,12 @@
     }
 
     function openWithdrawModal() {
-      const verifiedCount = AppState.teamMembers.filter(m => m.verified).length;
-
-      if (AppState.balances.available < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
-        showToast(`Minimum withdrawal is ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM`);
+      if (!hasApprovedMinerPurchase()) {
+        showToast("Purchase and receive approval for at least one miner first.");
         return;
       }
-      if (verifiedCount < STORM_CONFIG.MIN_VERIFIED_REFERRALS) {
-        showToast(`Requires at least ${STORM_CONFIG.MIN_VERIFIED_REFERRALS} verified referrals (paid 0.5 TON)`);
+      if (AppState.balances.available < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
+        showToast(`Minimum withdrawal is ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM`);
         return;
       }
 
@@ -2561,11 +2562,20 @@
       document.getElementById("withdrawModal").classList.add("show");
     }
 
-    function submitWithdrawalForm() {
-      const amount = parseFloat(document.getElementById("inputWithdrawAmount").value);
+    async function submitWithdrawalForm() {
+      const amount = Number(document.getElementById("inputWithdrawAmount").value);
       const address = document.getElementById("inputWithdrawDestination").value.trim();
+      const initData = telegramInitData();
 
-      if (isNaN(amount) || amount < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
+      if (!initData) {
+        showToast("Open STORM inside Telegram to request a withdrawal.");
+        return;
+      }
+      if (!hasApprovedMinerPurchase()) {
+        showToast("Purchase and receive approval for at least one miner first.");
+        return;
+      }
+      if (!Number.isFinite(amount) || amount < STORM_CONFIG.MIN_WITHDRAWAL_STORM) {
         showToast(`Minimum withdrawal is ${STORM_CONFIG.MIN_WITHDRAWAL_STORM} STORM`);
         return;
       }
@@ -2578,31 +2588,106 @@
         return;
       }
 
-      const netPayout = amount - STORM_CONFIG.WITHDRAWAL_FEE_STORM;
+      const fee = STORM_CONFIG.WITHDRAWAL_FEE_STORM;
+      const netPayout = amount - fee;
       if (netPayout <= 0) {
-        showToast("Withdrawal amount must exceed the 300 STORM fee");
+        showToast(`Withdrawal amount must exceed the ${fee} STORM fee`);
         return;
       }
 
-      // Deduct balance including fee
-      AppState.balances.total -= amount;
-      AppState.balances.available -= amount;
+      const submitButton = document.querySelector('#withdrawModal button[onclick="submitWithdrawalForm()"]');
+      if (submitButton) { submitButton.disabled = true; submitButton.textContent = "Submitting..."; }
+      try {
+        const response = await fetch(`${STORM_CONFIG.API_BASE_URL}/create-withdrawal`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ init_data: initData, amount, wallet_address: address })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || data.detail || "Could not submit withdrawal request");
+        }
 
-      const tx = {
-        id: "WD-" + Math.floor(1000 + Math.random() * 9000),
-        type: `Withdrawal (${netPayout.toFixed(1)} + 300 fee)`,
-        amount: `${amount.toFixed(2)} STORM`,
-        status: "PENDING",
-        date: new Date().toLocaleDateString()
-      };
+        // Reserve the requested amount locally while the admin reviews it.
+        AppState.balances.total -= amount;
+        AppState.balances.available -= amount;
+        AppState.transactions.unshift({
+          id: "WD-" + data.withdrawal_request_id.slice(0, 8),
+          withdrawalRequestId: data.withdrawal_request_id,
+          type: `Withdrawal (${netPayout.toFixed(2)} payout + ${fee} fee)`,
+          amount: `${amount.toFixed(2)} STORM`,
+          grossAmount: amount,
+          status: "PENDING",
+          date: new Date().toLocaleDateString(),
+          refunded: false,
+          reserved: true
+        });
+        persistState();
+        closeModal("withdrawModal");
+        renderGlobalStats();
+        renderTxHistory();
+        showToast(`Request sent. Payout: ${netPayout.toFixed(2)} STORM (fee: ${fee}).`);
+        await syncWithdrawalStatus(true);
+      } catch (error) {
+        showToast(error.message || "Withdrawal request failed. Your balance was not changed.");
+      } finally {
+        if (submitButton) { submitButton.disabled = false; submitButton.textContent = "Confirm Withdraw"; }
+      }
+    }
 
-      AppState.transactions.unshift(tx);
-      persistState();
-      closeModal("withdrawModal");
-      renderGlobalStats();
-      renderTxHistory();
+    async function syncWithdrawalStatus(silent = true) {
+      if (withdrawalStatusSyncBusy || !telegramInitData()) return;
+      withdrawalStatusSyncBusy = true;
+      try {
+        const response = await fetch(`${STORM_CONFIG.API_BASE_URL}/withdrawal-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ init_data: telegramInitData() }),
+          cache: "no-store"
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) throw new Error(data.error || data.detail || "Could not sync withdrawal status");
 
-      showToast(`Submitted! ${netPayout.toFixed(2)} STORM (Fee: 300 STORM)`);
+        (data.withdrawals || []).forEach(item => {
+          const status = item.status === "approved" ? "APPROVED"
+            : item.status === "rejected" ? "REJECTED" : "PENDING";
+          let tx = AppState.transactions.find(t => t.withdrawalRequestId === item.withdrawal_request_id);
+          if (!tx) {
+            tx = {
+              id: "WD-" + item.withdrawal_request_id.slice(0, 8),
+              withdrawalRequestId: item.withdrawal_request_id,
+              type: `Withdrawal (${Number(item.payout_amount).toFixed(2)} payout + ${Number(item.fee_amount).toFixed(2)} fee)`,
+              amount: `${Number(item.gross_amount).toFixed(2)} STORM`,
+              grossAmount: Number(item.gross_amount),
+              status: "PENDING",
+              date: item.created_at ? new Date(item.created_at).toLocaleDateString() : "",
+              refunded: false,
+              reserved: false
+            };
+            AppState.transactions.unshift(tx);
+          }
+          const previousStatus = tx.status;
+          tx.status = status;
+          if (status === "REJECTED" && previousStatus !== "REJECTED" && tx.reserved && !tx.refunded) {
+            const refund = Number(tx.grossAmount || item.gross_amount) || 0;
+            AppState.balances.total += refund;
+            AppState.balances.available += refund;
+            tx.refunded = true;
+          }
+          if (!silent && previousStatus === "PENDING" && status === "APPROVED") {
+            showToast("Withdrawal approved. Check your TON wallet for the payout.");
+          } else if (!silent && previousStatus === "PENDING" && status === "REJECTED") {
+            showToast("Withdrawal rejected. Your STORM balance has been refunded.");
+          }
+        });
+        persistState();
+        renderGlobalStats();
+        renderTxHistory();
+      } catch (error) {
+        if (!silent) showToast(error.message || "Could not refresh withdrawal status");
+      } finally {
+        withdrawalStatusSyncBusy = false;
+      }
     }
 
     /* -------------------------------------------------------------
@@ -2715,6 +2800,7 @@
       serverApprovedPaymentIds = new Set();
       initTelegramSDK();
       await syncPaymentStatus(true);
+      await syncWithdrawalStatus(true);
       drawWheelCanvas();
       renderMinersShop();
       renderTasks();
@@ -2730,6 +2816,7 @@
       setInterval(() => renderTasks(), 60000); // Check 24h task timers every minute
       setInterval(() => fetchDexScreenerPrice(false), 45000);
       setInterval(() => syncPaymentStatus(false), 15000);
+      setInterval(() => syncWithdrawalStatus(false), 15000);
     });
   </script>
 
@@ -2955,15 +3042,15 @@
     /* ---- 10. Withdrawal progress ---- */
     var wBtn = document.querySelector('button[onclick="openWithdrawModal()"]');
     wBtn.insertAdjacentHTML("beforebegin",
-      '<div class="prog-wrap"><div><div class="prog-row"><span>Verified referrals</span><b id="wdRefTxt">0 of 2</b></div><div class="prog-track"><i id="wdRefBar"></i></div></div>' +
-      '<div><div class="prog-row"><span>Minimum balance</span><b id="wdBalTxt">0 / 5000</b></div><div class="prog-track"><i id="wdBalBar"></i></div></div></div>');
+      '<div class="prog-wrap"><div><div class="prog-row"><span>Miner purchase</span><b id="wdMinerTxt">Not purchased</b></div><div class="prog-track"><i id="wdMinerBar"></i></div></div>' +
+      '<div><div class="prog-row"><span>Minimum balance</span><b id="wdBalTxt">0 / 3000 STORM</b></div><div class="prog-track"><i id="wdBalBar"></i></div></div></div>');
     function updateWdProg() {
-      var need = STORM_CONFIG.MIN_VERIFIED_REFERRALS, min = STORM_CONFIG.MIN_WITHDRAWAL_STORM;
-      var v = AppState.teamMembers.filter(function (m) { return m.verified; }).length, bal = AppState.balances.available;
-      $("wdRefTxt").textContent = Math.min(v, need) + " of " + need + " verified";
+      var min = STORM_CONFIG.MIN_WITHDRAWAL_STORM, bal = Number(AppState.balances.available) || 0;
+      var ownsMiner = hasApprovedMinerPurchase();
+      $("wdMinerTxt").textContent = ownsMiner ? "Approved" : "Required";
       $("wdBalTxt").textContent = Math.floor(bal) + " / " + min + " STORM";
-      var a = $("wdRefBar"), b = $("wdBalBar");
-      a.style.width = Math.min(100, v / need * 100) + "%"; a.className = v >= need ? "ok" : "";
+      var a = $("wdMinerBar"), b = $("wdBalBar");
+      a.style.width = ownsMiner ? "100%" : "0%"; a.className = ownsMiner ? "ok" : "";
       b.style.width = Math.min(100, bal / min * 100) + "%"; b.className = bal >= min ? "ok" : "";
     }
 
