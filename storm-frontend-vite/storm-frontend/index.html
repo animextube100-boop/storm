@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0B0C0E" />
+    <title>STORM Mining</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+<!-- Decorative animated STORM lightning background -->
+  <div class="storm-bg-lightning" aria-hidden="true">
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+    <span class="bg-bolt"></span>
+  </div>
+
+
+  <!-- Splash / Loading Screen -->
+  <div id="splash" class="splash" aria-live="polite">
+    <div class="splash-logo">
+      <div class="splash-ring"></div>
+      <img class="splash-img" src="https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg" alt="STORM Token" />
+    </div>
+    <div>
+      <div class="splash-title">STORM<span>.</span></div>
+      <div class="splash-sub" id="splashStatus">Starting up</div>
+    </div>
+    <div class="splash-bar"><div class="splash-bar-fill" id="splashFill"></div></div>
+  </div>
+
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-msg">Notification</div>
+
+  <div class="app-viewport">
+
+    <!-- USER TOP HEADER -->
+    <header class="top-header">
+      <div class="user-profile">
+        <img id="userAvatarImg" class="user-avatar" src="https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg" alt="Avatar" onerror="this.src='https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg'" />
+        <div>
+          <div class="user-name">
+            <span id="userNameTxt">Miner</span>
+            <span id="userVerificationBadge" class="status-badge badge-unverified">UNVERIFIED</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim);" id="userIdTxt">ID: --</div>
+        </div>
+      </div>
+      <button class="btn-3d-secondary" style="font-size: 11px; padding: 6px 10px;" onclick="switchTab('page-profile')">
+        Profile
+      </button>
+    </header>
+
+    <!-- =========================================================
+         PAGE 1: COMBINED HOME & MINING SECTION
+    ========================================================= -->
+    <main id="page-home" class="page-view active">
+      
+      <!-- 1. MINING RIG AT VERY TOP (PROMINENT OFFICIAL LOGO) -->
+      <section class="solid-card mining-hero-card">
+        <div class="mining-logo-frame" id="stormOrb">
+          <div class="storm-aura"></div>
+          <div class="storm-ring r2"></div>
+          <div class="storm-ring r1"></div>
+          <img src="https://i.ibb.co/k6qLHqDw/file-00000000ad5882108932c3d8a1393bd1.jpg" alt="STORM Logo" class="mining-logo-img" />
+          <div class="storm-shine"></div>
+          <svg class="storm-bolt b1" viewBox="0 0 20 36"><path d="M12 0 L2 20 L9 20 L6 36 L18 13 L10 13 Z"/></svg>
+          <svg class="storm-bolt b2" viewBox="0 0 20 36"><path d="M12 0 L2 20 L9 20 L6 36 L18 13 L10 13 Z"/></svg>
+          <span class="storm-spark" style="--l:18%; --x:-14px; --d:0s"></span>
+          <span class="storm-spark" style="--l:34%; --x:8px;  --d:.7s"></span>
+          <span class="storm-spark" style="--l:50%; --x:-6px; --d:1.4s"></span>
+          <span class="storm-spark" style="--l:66%; --x:16px; --d:2.1s"></span>
+          <span class="storm-spark" style="--l:82%; --x:10px; --d:2.8s"></span>
+        </div>
+
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Accumulated Session Yield</div>
+          <div style="font-size: 30px; font-weight: 900; color: var(--gold-primary); margin-top: 2px;">
+            <span id="miningAccumulatedVal">0.000</span> <span style="font-size: 16px;">STORM</span>
+          </div>
+        </div>
+
+        <div style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+            <span id="miningRigStatusLabel">STATUS: INACTIVE</span>
+            <span id="miningCountdownTimer" style="color: var(--gold-primary);">08:00:00</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="miningProgressFillBar"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 4px;" id="miningCycleLabel">
+            Session: 8 Hours (Next Auto-Cycle: 6H)
+          </div>
+        </div>
+
+        <div class="grid-2" style="width: 100%;">
+          <div class="stat-box">
+            <div class="stat-label">Mining Speed</div>
+            <div class="stat-value gold" id="miningPowerText">10.0 STORM/h</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Hardware Rig</div>
+            <div class="stat-value" id="miningTierText">Tier 1 Free</div>
+          </div>
+        </div>
+
+        <div style="width: 100%;">
+          <button id="btnStartMiningRig" class="btn-3d" onclick="handleStartMiningClick()">
+            Start 8H Mining
+          </button>
+          <button id="btnClaimMiningYield" class="btn-3d" style="display: none; background: #10B981; border-color: #059669;" onclick="handleClaimMiningClick()">
+            Claim STORM Yield
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. TOTAL STORM BALANCE & USD ONLY (NO INR) -->
+      <section class="solid-card" style="text-align: center; padding: 18px 14px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total STORM Balance</div>
+        <div style="font-size: 34px; font-weight: 900; color: var(--gold-primary); margin: 4px 0;">
+          <span id="homeTotalBalance">0.000</span> <span style="font-size: 16px;">STORM</span>
+        </div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-muted);">
+          ≈ <span id="homeFiatUSD" style="color: #FFFFFF;">$0.00</span> USD
+        </div>
+      </section>
+
+      <!-- 3. AVAILABLE & PENDING CLAIM STATS -->
+      <div class="grid-2">
+        <div class="stat-box">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value gold" id="homeAvailBalance">0.000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pending Claim</div>
+          <div class="stat-value" id="homePendingBalance">0.000</div>
+        </div>
+      </div>
+
+      <!-- 4. ACCOUNT VERIFICATION WARNING (IF UNVERIFIED) -->
+      <div id="unverifiedNoticeBox" class="verification-warning" style="display: none;">
+        <div style="font-size: 12px; font-weight: 800; color: var(--gold-primary); text-transform: uppercase;">⚠️ Account Unverified</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Free mining requires a one-time anti-bot verification of <strong>0.5 TON</strong>. Once approved by admin, mining unlocks.
+        </div>
+        <button class="btn-3d" style="padding: 10px; font-size: 12px;" onclick="openVerificationModal()">
+          Complete 0.5 TON Verification
+        </button>
+      </div>
+
+      <!-- 5. LIVE TOKEN PRICE (DEXSCREENER) -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Live STORM Market Price</span>
+          <button class="btn-3d-secondary" style="padding: 3px 8px; font-size: 10px;" onclick="fetchDexScreenerPrice(true)">Refresh</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div>
+            <span style="font-size: 20px; font-weight: 900;" id="liveTokenPriceDisplay">Loading...</span>
+            <span id="livePriceChangeDisplay" style="font-size: 12px; font-weight: 800; margin-left: 6px;">--</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim);" id="priceTimestampDisplay">DexScreener</div>
+        </div>
+      </section>
+
+      <!-- 6. 7-DAY LOGIN STREAK REWARDS -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>7-Day Login Streak</span>
+          <button class="btn-3d-secondary" id="btnCheckInDaily" style="padding: 4px 10px; font-size: 11px;" onclick="claimDailyStreakReward()">Check In</button>
+        </div>
+        <div class="streak-grid" id="streakCellsContainer"></div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 2: MINERS STORE (UPDATED SPEED & PHOTOS)
+    ========================================================= -->
+    <main id="page-miners" class="page-view">
+      
+      <div class="solid-card">
+        <div class="card-title">Hardware Rig Upgrades</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Upgraded cloud hardware. When your purchase is verified, the mining speed is added permanently to your account!
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;" id="minerCardsContainer">
+        <!-- Rendered via MINER_LIST -->
+      </div>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 3: TASKS & LUCKY SPIN WHEEL (24H REPEATABLE)
+    ========================================================= -->
+    <main id="page-tasks" class="page-view">
+      
+      <div class="solid-card">
+        <div class="card-title">Daily Quests & Tasks</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Complete these promotional community tasks once every 24 hours to earn continuous STORM token rewards!
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;" id="tasksCardsContainer">
+        <!-- Rendered via TASKS_LIST with 24h reset timer -->
+      </div>
+
+      <!-- LUCKY SPIN SECTION (20 - 100 STORM) -->
+      <section class="solid-card spin-box">
+        <div class="card-title" style="width: 100%;">⚡ Daily Lucky Spin</div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Spin once every 24 hours. Guaranteed reward between 20 and 100 STORM.
+        </div>
+
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer"></div>
+          <canvas id="wheelCanvas" width="500" height="500"></canvas>
+        </div>
+
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+          Next Spin: <strong id="spinTimerTxt" style="color: var(--gold-primary);">Ready</strong>
+        </div>
+
+        <button id="btnTriggerSpin" class="btn-3d" style="max-width: 260px;" onclick="handleSpinWheelClick()">
+          SPIN WHEEL
+        </button>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 4: FULL TEAM SECTION (REFERRALS & REWARDS)
+    ========================================================= -->
+    <main id="page-team" class="page-view">
+      
+      <!-- REFERRAL SUMMARY -->
+      <section class="solid-card">
+        <div class="card-title">My Mining Team</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Earn <strong>10% commission</strong> on all earnings generated by your verified referrals.
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 10px;">
+          <div class="stat-box">
+            <div class="stat-label">Total Referrals</div>
+            <div class="stat-value" id="teamTotalCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Verified (0.5 TON)</div>
+            <div class="stat-value gold" id="teamVerifiedCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Team Commission</div>
+            <div class="stat-value gold" id="teamTotalEarnings">0.00</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Your Personal Invite Link:</div>
+          <div class="address-display-box" id="refLinkDisplay">https://t.me/Mine_STORM_bot?start=ref_000</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button class="btn-3d-secondary" style="flex: 1;" onclick="copyReferralLink()">Copy Link</button>
+          <button class="btn-3d" style="flex: 1; padding: 10px;" onclick="shareReferralLink()">Share</button>
+        </div>
+      </section>
+
+      <!-- REFERRAL MEMBERS LIST -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Team Members</span>
+          <span style="font-size: 11px; font-weight: 700; color: var(--gold-primary);">10% Yield Share</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;" id="teamMembersListContainer">
+          <!-- Rendered via AppState.teamMembers -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         PAGE 5: PROFILE & WALLET & WITHDRAWALS (MIN 5000 + 300 FEE)
+    ========================================================= -->
+    <main id="page-profile" class="page-view">
+      
+      <!-- WALLET ADDRESS (DYNAMIC SAVE & DISCONNECT STATE) -->
+      <section class="solid-card">
+        <div class="card-title">Destination TON Wallet</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+          Withdrawals are dispatched to your saved non-custodial TON wallet.
+        </div>
+
+        <!-- STATE 1: NO WALLET SAVED (INPUT & SAVE BUTTON VISIBLE) -->
+        <div id="walletInputContainer">
+          <input type="text" id="manualWalletInput" class="input-field" placeholder="Enter TON Address (UQ... / EQ...)" />
+          <button class="btn-3d" style="margin-top: 8px;" onclick="saveManualWallet()">
+            Save Wallet Address
+          </button>
+        </div>
+
+        <!-- STATE 2: WALLET SAVED (ADDRESS DISPLAYED & DISCONNECT BUTTON ONLY) -->
+        <div id="walletSavedContainer" style="display: none;">
+          <div class="stat-box" style="margin-bottom: 8px;">
+            <div class="stat-label">Connected Wallet Address</div>
+            <div id="savedWalletAddressText" class="address-display-box" style="margin-top: 6px;">--</div>
+          </div>
+          <button class="btn-3d btn-danger" onclick="disconnectWallet()">
+            Disconnect Wallet
+          </button>
+        </div>
+      </section>
+
+      <!-- WITHDRAWAL SECTION (MIN 5000 STORM & 300 FEE) -->
+      <section class="solid-card">
+        <div class="card-title">Withdraw STORM</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+          <strong>Rules:</strong> Minimum 5000 STORM, 300 STORM Fixed Network Fee, and at least 2 Approved Verified Referrals.
+        </div>
+        <div class="grid-2" style="margin-bottom: 10px;">
+          <div class="stat-box">
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value gold" id="withdrawAvailBal">0.000</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="withdrawEligibilityText" style="font-size: 11px;">Checking...</div>
+          </div>
+        </div>
+        <button class="btn-3d" onclick="openWithdrawModal()">
+          Request Withdrawal
+        </button>
+      </section>
+
+      <!-- TRANSACTION HISTORY -->
+      <section class="solid-card">
+        <div class="card-title">
+          <span>Transaction & Order History</span>
+          <span style="font-size: 10px; color: var(--text-dim);">Tap item to verify</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;" id="txHistoryContainer">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- =========================================================
+       BOTTOM NAVIGATION BAR
+  ========================================================= -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('page-home', this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-miners', this)">
+      <svg viewBox="0 0 24 24"><path d="M22 6h-6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-12-2h4v2h-4V4zm12 14H2V8h20v10z"/></svg>
+      <span>Miners</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-tasks', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-4.5-4.5 1.4-1.4 3.1 3.1 7.1-7.1 1.4 1.4L10 17z"/></svg>
+      <span>Tasks</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-team', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Team</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('page-profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- =========================================================
+       MODAL 1: 0.5 TON VERIFICATION
+  ========================================================= -->
+  <div id="verificationModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title">0.5 TON Account Verification</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Create a 4-minute payment request, send exactly <strong>0.5 TON</strong> to the official address, then verify your wallet transaction hash.
+      </div>
+
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Official Destination Address:</div>
+        <div class="address-display-box" id="verifyReceivingAddress">UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x</div>
+        <button class="btn-3d-secondary" style="width: 100%; margin-top: 6px; padding: 6px;" onclick="copyCentralAddress()">
+          Copy Address
+        </button>
+      </div>
+
+      <div class="payment-session-panel">
+        <div class="payment-session-top"><span>PAYMENT SESSION</span><strong id="verifyPaymentCountdown">Creating request...</strong></div>
+        <div class="payment-session-amount" id="verifyPaymentAmount">0.5 TON</div>
+        <div class="payment-session-hint" id="verifyPaymentHint">A 4-minute payment window starts when this request is created.</div>
+      </div>
+      <div style="font-size: 10px; color: #AEB5C2; text-align: center; margin-top: -4px;">
+        Note: Verification may take up to 30–60 minutes.
+      </div>
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash (from Tonkeeper / Explorer):</label>
+        <input type="text" id="verifyTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitVerificationPayment()">
+          Verify Payment
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('verificationModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 2: BUY MINER (SAME CENTRAL TON ADDRESS)
+  ========================================================= -->
+  <div id="minerBuyModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title" id="buyMinerTitle">Purchase Miner</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Create a 4-minute payment request, send the exact amount to the official address, then verify your wallet transaction hash.
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Amount Due</div>
+        <div class="stat-value gold" id="buyMinerPriceTon">0.0 TON</div>
+      </div>
+
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Official Receiving TON Address:</div>
+        <div class="address-display-box" id="minerReceivingAddress">UQCo0-D4DWT4Q99BJ35ONA7wduh_qtNwwpni55UyMhsFcY-x</div>
+        <button class="btn-3d-secondary" style="width: 100%; margin-top: 6px; padding: 6px;" onclick="copyCentralAddress()">
+          Copy Address
+        </button>
+      </div>
+
+      <div class="payment-session-panel">
+        <div class="payment-session-top"><span>PAYMENT SESSION</span><strong id="minerPaymentCountdown">Creating request...</strong></div>
+        <div class="payment-session-amount" id="minerPaymentAmount">-- TON</div>
+        <div class="payment-session-hint" id="minerPaymentHint">A 4-minute payment window starts when this request is created.</div>
+      </div>
+      <div style="font-size: 10px; color: #AEB5C2; text-align: center; margin-top: -4px;">
+        Note: Verification may take up to 30–60 minutes.
+      </div>
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Transaction Hash:</label>
+        <input type="text" id="minerTxHashInput" class="input-field" placeholder="Paste TON transaction hash" style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitMinerPurchase()">
+          Verify Purchase
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('minerBuyModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 3: WITHDRAWAL REQUEST (MIN 5000 + 300 FEE)
+  ========================================================= -->
+  <div id="withdrawModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="card-title">Withdrawal Request</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Tokens will be manually dispatched to your TON wallet after review.
+      </div>
+
+      <div class="grid-2">
+        <div class="stat-box">
+          <div class="stat-label">Available Balance</div>
+          <div class="stat-value gold" id="modalWithdrawAvailable">0.000 STORM</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">System Fee</div>
+          <div class="stat-value" style="color: var(--color-warning);">300 STORM</div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Amount (Minimum 5000 STORM):</label>
+        <input type="number" id="inputWithdrawAmount" class="input-field" placeholder="5000" min="5000" style="margin-top: 4px;" oninput="updateWithdrawalBreakdown()" />
+      </div>
+
+      <div class="stat-box" style="background: #11141A;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-muted);">Net Payout to Wallet:</span>
+          <strong id="modalNetPayoutText" style="color: var(--gold-primary);">0.00 STORM</strong>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 11px; color: var(--text-muted);">Destination TON Address:</label>
+        <input type="text" id="inputWithdrawDestination" class="input-field" placeholder="UQ... or EQ..." style="margin-top: 4px;" />
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn-3d" style="flex: 1;" onclick="submitWithdrawalForm()">
+          Confirm Withdraw
+        </button>
+        <button class="btn-3d-secondary" style="flex: 1;" onclick="closeModal('withdrawModal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT ARCHITECTURE & FUNCTIONALITY
+       ========================================================================== -->
+  
+
+  <!-- Splash screen controller (independent of app logic) -->
+  
+
+  <!-- STORM orb interactions (separate from app logic) -->
+  
+
+  <!-- UI PACK v3 (additive; wraps existing functions, changes no app logic) -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
